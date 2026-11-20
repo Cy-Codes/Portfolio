@@ -1,0 +1,98 @@
+# ============================================================================
+# Portfolio Local Infrastructure & Emulation Stack
+# Profiles:
+#   deps  - PostgreSQL 16 + One-Shot Flyway Migrator + MinIO (R2 local emulator)
+#   local - Full local runtime dependencies (+ containerized Ktor servers in Phase 2)
+#   test  - Ephemeral verification dependencies
+# ============================================================================
+
+services:
+  postgres:
+    image: "postgres:${POSTGRES_IMAGE_TAG:-16.8-alpine}"
+    profiles: ["deps", "local", "test"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-portfolio}"
+      POSTGRES_USER: "${POSTGRES_SUPERUSER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_SUPERUSER_PASSWORD:-dev_postgres_superuser_change_me}"
+      PORTFOLIO_MIGRATOR_USER: "${PORTFOLIO_MIGRATOR_USER:-portfolio_migrator}"
+      PORTFOLIO_MIGRATOR_PASSWORD: "${PORTFOLIO_MIGRATOR_PASSWORD:-dev_migrator_change_me}"
+      PORTFOLIO_ADMIN_USER: "${PORTFOLIO_ADMIN_USER:-portfolio_admin}"
+      PORTFOLIO_ADMIN_PASSWORD: "${PORTFOLIO_ADMIN_PASSWORD:-dev_admin_change_me}"
+      PORTFOLIO_PUBLIC_USER: "${PORTFOLIO_PUBLIC_USER:-portfolio_public}"
+      PORTFOLIO_PUBLIC_PASSWORD: "${PORTFOLIO_PUBLIC_PASSWORD:-dev_public_change_me}"
+    ports:
+      - "${HOST_BIND_ADDRESS:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./server/server-db/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U \"${POSTGRES_SUPERUSER:-postgres}\" -d \"${POSTGRES_DB:-portfolio}\""
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+  db-migrator:
+    image: "flyway/flyway:${FLYWAY_IMAGE_TAG:-11.8-alpine}"
+    profiles: ["deps", "local", "test"]
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      FLYWAY_URL: "jdbc:postgresql://postgres:5432/${POSTGRES_DB:-portfolio}"
+      FLYWAY_USER: "${PORTFOLIO_MIGRATOR_USER:-portfolio_migrator}"
+      FLYWAY_PASSWORD: "${PORTFOLIO_MIGRATOR_PASSWORD:-dev_migrator_change_me}"
+      FLYWAY_SCHEMAS: "portfolio,analytics"
+      FLYWAY_DEFAULT_SCHEMA: "portfolio"
+      FLYWAY_CREATE_SCHEMAS: "true"
+      FLYWAY_BASELINE_ON_MIGRATE: "false"
+    volumes:
+      - ./server/server-db/resources/db/migrations:/flyway/sql:ro
+    command: ["migrate"]
+
+  minio:
+    image: "pgsty/minio:${MINIO_IMAGE_TAG:-RELEASE.2026-08-04T00-00-00Z}"
+    profiles: ["deps", "local", "test"]
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-minioadmin}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-dev_minio_change_me}"
+    ports:
+      - "${HOST_BIND_ADDRESS:-127.0.0.1}:${MINIO_API_PORT:-9000}:9000"
+      - "${HOST_BIND_ADDRESS:-127.0.0.1}:${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    command: ["server", "/data", "--console-address", ":9001"]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+  minio-init:
+    image: "pgsty/mc:${MINIO_MC_IMAGE_TAG:-RELEASE.2026-11-12T00-00-00Z}"
+    profiles: ["deps", "local", "test"]
+    restart: "no"
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-minioadmin}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-dev_minio_change_me}"
+      BLOB_STORAGE_BUCKET: "${BLOB_STORAGE_BUCKET:-portfolio-assets}"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >
+        mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}" &&
+        mc mb --ignore-existing "local/$${BLOB_STORAGE_BUCKET}"
+
+volumes:
+  postgres_data:
+  minio_data:

@@ -1,0 +1,23 @@
+product: jvm/lib
+
+dependencies:
+  - //core
+  - $libs.exposed.core
+  - $libs.exposed.jdbc
+  - $libs.exposed.json
+  - $libs.exposed.java.time
+  - $libs.hikaricp
+  - $libs.postgresql
+  - $libs.flyway.core
+  - $libs.flyway.database.postgresql
+  - $libs.aws.sdk.kotlin.s3
+  - $libs.kotlinx.coroutines.core
+  - $libs.kotlinx.datetime
+  - $libs.logback.classic
+
+settings:
+  kotlin:
+    serialization: json
+
+test-dependencies:
+  - $libs.kotlinx.coroutines.test

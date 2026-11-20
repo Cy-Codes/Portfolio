@@ -1,0 +1,16 @@
+product: jvm/app
+
+dependencies:
+  - //core
+  - //server/server-db
+  - $ktor.server.core
+  - $ktor.server.netty
+  - $libs.logback.classic
+
+settings:
+  ktor: enabled
+  jvm:
+    mainClass: codes.cy.portfolio.server.publicapi.ApplicationKt
+
+test-dependencies:
+  - $ktor.server.testHost

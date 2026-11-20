@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# ============================================================================
+# Git Pre-Commit Hook: Immutability Guard, Auto-Formatting & Syntax Checks
+# ============================================================================
+set -euo pipefail
+
+readonly REPO_TOP="$(git rev-parse --show-toplevel)"
+readonly FORMATTER_SCRIPT="${REPO_TOP}/.githooks/clean_and_format.py"
+
+# Guard: Reject modifications, renames, or deletions of committed Flyway V*.sql files
+IMMUTABLE_VIOLATIONS=()
+while IFS=$'\t' read -r status file_path extra_path; do
+    case "${status}" in
+        M* | D* | R*)
+            if [[ "${file_path}" == *"/migrations/V"*".sql" ]] || [[ "${extra_path:-}" == *"/migrations/V"*".sql" ]]; then
+                IMMUTABLE_VIOLATIONS+=("${status}: ${file_path}")
+            fi
+            ;;
+    esac
+done < <(git diff --cached --name-status)
+
+if [ "${#IMMUTABLE_VIOLATIONS[@]}" -gt 0 ]; then
+    echo "ERROR: Committed Flyway V*.sql migrations are strictly immutable." >&2
+    printf '  %s\n' "${IMMUTABLE_VIOLATIONS[@]}" >&2
+    echo "Create a new V<n+1>__<description>.sql migration instead." >&2
+    exit 1
+fi
+
+STAGED_FILES=()
+while IFS= read -r rel_path; do
+    if [ -n "${rel_path}" ] && [ -f "${REPO_TOP}/${rel_path}" ]; then
+        STAGED_FILES+=("${REPO_TOP}/${rel_path}")
+    fi
+done < <(git diff --cached --name-only --diff-filter=ACMR)
+
+if [ "${#STAGED_FILES[@]}" -eq 0 ]; then
+    exit 0
+fi
+
+if [ -f "${FORMATTER_SCRIPT}" ]; then
+    python3 "${FORMATTER_SCRIPT}" "${STAGED_FILES[@]}"
+fi
+
+for abs_file in "${STAGED_FILES[@]}"; do
+    if [ -f "${abs_file}" ]; then
+        case "${abs_file}" in
+            *.py)
+                python3 -m py_compile "${abs_file}"
+                ;;
+            *.sh)
+                bash -n "${abs_file}"
+                ;;
+        esac
+        git add "${abs_file}"
+    fi
+done

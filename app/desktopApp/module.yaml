@@ -1,7 +1,7 @@
 product: jvm/app
 
 dependencies:
-  - //app/shared
+  - //app/composeUi
   - $compose.desktop.currentOs
   - $compose.preview
   - $libs.kotlinx.coroutines.swing

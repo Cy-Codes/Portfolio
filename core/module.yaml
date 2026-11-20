@@ -1,3 +1,13 @@
 product:
   type: kmp/lib
   platforms: [ jvm, android, iosArm64, iosSimulatorArm64, wasmJs ]
+
+dependencies:
+  - $ktor.resources
+  - $libs.kotlinx.datetime
+
+settings:
+  kotlin:
+    serialization: json
+  ktor:
+    enabled: true

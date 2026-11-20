@@ -1,7 +1,8 @@
 product: ios/app
 
 dependencies:
-  - //app/shared
+  - //app/presentation
+  - //app/composeUi
   - $compose.ui
 
 settings:

@@ -1,0 +1,14 @@
+product:
+  type: kmp/lib
+  platforms: [ jvm, wasmJs ]
+
+dependencies:
+  - //core
+  - //app/composeUi
+  - $compose.runtime
+  - $compose.foundation
+  - $compose.material3
+  - $compose.ui
+
+settings:
+  compose: enabled

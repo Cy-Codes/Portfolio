@@ -1,8 +1,14 @@
 modules:
+  - app/adminDesktopApp
+  - app/adminShared
+  - app/adminWebApp
   - app/androidApp
+  - app/composeUi
   - app/desktopApp
   - app/iosApp
-  - app/shared
+  - app/presentation
   - app/webApp
   - core
-  - server
+  - server/server-admin
+  - server/server-db
+  - server/server-public
