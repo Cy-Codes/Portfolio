@@ -1,0 +1,20 @@
+meta {
+  name: Dynamic Wasm SEO Shell
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{publicBaseUrl}}/
+  body: none
+  auth: none
+}
+
+tests {
+  test("Root serves dynamic SEO metadata, ProfilePage JSON-LD, and noscript fallback", function() {
+    expect(res.status).to.equal(200);
+    const html = typeof res.body === "string" ? res.body : JSON.stringify(res.body);
+    expect(html).to.include("ProfilePage");
+    expect(html).to.include("<noscript>");
+  });
+}

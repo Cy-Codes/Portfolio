@@ -1,0 +1,45 @@
+meta {
+  name: Create Writeup Draft
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{adminBaseUrl}}/api/v1/admin/writeups
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "slug": "{{tempWriteupSlug}}",
+    "title": "Bruno End-to-End Verification Writeup",
+    "subtitle": "Created and cleaned during automated smoke suite",
+    "summary": "Temporary draft writeup verified through Admin CMS endpoints.",
+    "bodyMarkdown": "# Draft\n\nSmoke verification body.",
+    "tags": ["bruno", "smoke"],
+    "status": "DRAFT",
+    "readingTimeMin": 3
+  }
+}
+
+script:pre-request {
+  bru.setVar("tempWriteupSlug", "bruno-smoke-" + Date.now());
+}
+
+script:post-response {
+  if (res.status === 201 && res.body && res.body.id) {
+    bru.setVar("createdWriteupId", res.body.id);
+  }
+}
+
+tests {
+  test("Create draft writeup returns 201 Created", function() {
+    expect(res.status).to.equal(201);
+    expect(res.body.status).to.equal("DRAFT");
+  });
+}

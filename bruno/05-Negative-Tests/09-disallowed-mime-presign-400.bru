@@ -1,0 +1,31 @@
+meta {
+  name: Disallowed MIME Type Presign Returns 400
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{adminBaseUrl}}/api/v1/admin/documents/presign
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "originalFilename": "payload.exe",
+    "mimeType": "application/x-msdownload",
+    "sizeBytes": 1024,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
+
+tests {
+  test("Disallowed executable MIME is rejected with 400 validation_error", function() {
+    expect(res.status).to.equal(400);
+    expect(res.body.type).to.equal("validation_error");
+  });
+}

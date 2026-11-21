@@ -1,0 +1,21 @@
+meta {
+  name: HTML Reader View /read/{slug}
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{publicBaseUrl}}/read/decompose-flowmvi-with-swiftui-and-wasm
+  body: none
+  auth: none
+}
+
+tests {
+  test("Reader View returns semantic HTML, JSON-LD, canonical link, and demo callout", function() {
+    expect(res.status).to.equal(200);
+    const html = typeof res.body === "string" ? res.body : JSON.stringify(res.body);
+    expect(html).to.include("application/ld+json");
+    expect(html).to.include("rel=\"canonical\"");
+    expect(html).to.include("Interactive Demo:");
+  });
+}

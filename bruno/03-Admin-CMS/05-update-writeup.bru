@@ -1,0 +1,36 @@
+meta {
+  name: Publish Writeup
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{adminBaseUrl}}/api/v1/admin/writeups/{{createdWriteupId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "slug": "{{tempWriteupSlug}}",
+    "title": "Bruno End-to-End Verification Writeup",
+    "subtitle": "Published during automated smoke suite",
+    "summary": "Temporary published writeup verified through Admin CMS endpoints.",
+    "bodyMarkdown": "# Published\n\nSmoke verification body.",
+    "tags": ["bruno", "smoke"],
+    "status": "PUBLISHED",
+    "readingTimeMin": 3
+  }
+}
+
+tests {
+  test("Publishing writeup sets status PUBLISHED and publishedAt", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.status).to.equal("PUBLISHED");
+    expect(res.body.publishedAt).to.be.a("string");
+  });
+}

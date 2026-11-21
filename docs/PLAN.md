@@ -9,7 +9,7 @@
 | Phase | Scope | Status | Key Verification Gate | Completed Date |
 | :--- | :--- | :--- | :--- | :--- |
 | **Phase 1** | Tooling, Standards, Docker, 4B Module Scaffold, `//core` & `//server/server-db` | Done | `compose.yaml` (`deps`) healthy, Flyway + `01_schema_structure_tests.sql` pass, `./kotlin build` passes | 2026-11-20 |
-| **Phase 2** | Ktor `server/server-public` & `server/server-admin`, Dockerfiles, Testcontainers, Konsist, Bruno | Not Started | `./kotlin test`, Konsist boundaries, Testcontainers Postgres/MinIO tests, `./scripts/smoke.sh local --bruno` pass | — |
+| **Phase 2** | Ktor `server/server-public` & `server/server-admin`, Dockerfiles, Testcontainers, Konsist, Bruno | Done | `./kotlin test`, Konsist boundaries, Testcontainers Postgres/MinIO tests, `./scripts/smoke.sh local --bruno` pass | 2026-11-20 |
 | **Phase 3** | Pure KMP Presentation Layer (`//app/presentation` — Decompose + FlowMVI) | Not Started | FlowMVI store unit tests + Konsist compose-free guard pass across all KMP targets | — |
 | **Phase 4** | Public Compose UI (`//app/composeUi`, Android, Desktop, `wasmJs`) | Not Started | Adaptive resize checks (`Compact`/`Medium`/`Expanded`/`Large`/`Extra-Large`), `Highlights` + `DemoRegistry`, `wasmJs` URL history verified | — |
 | **Phase 5** | Native SwiftUI iOS (`//app/iosApp`) + Embedded Compose Demo Islands | Not Started | Xcode iOS build + SwiftUI `TabView`/`NavigationSplitView` + inline `ComposeUIViewController` demo verified | — |
@@ -357,12 +357,12 @@ erDiagram
 - [x] Verify Phase 1 gates: `compose.yaml` (`deps`) healthy (`pgsty/minio` + `pgsty/mc`), Flyway + seed + `01_schema_structure_tests.sql` pass, `./kotlin build` (394/394 tasks) and `./kotlin test` (47 passed) succeed.
 
 ### Phase 2 — Ktor Public & Admin Servers, Dockerfiles, Testcontainers, Konsist & Bruno
-- [ ] Implement `server/server-public` clean layers (`domain`, `application`, `infrastructure`, `api`): `/health`, `/health/ready`, read APIs, `POST /api/v1/public/events`, pure `GET /documents/{id}/download`, `/read/{slug}` Ktor HTML DSL Reader View, `/sitemap.xml`, `/robots.txt`, dynamic Wasm SEO shell, Brotli/Gzip compression, and `StatusPages` -> `ApiError`.
-- [ ] Implement `server/server-admin` clean layers: `/health`, `/health/ready`, OAuth allowlist + Cloudflare Access JWT + dev-token auth, `*CommandService`/`*QueryService` CRUD routes, R2 presign + magic-byte MIME confirm + delete, analytics overview rollup queries, and `StatusPages` -> `ApiError`.
-- [ ] Add multi-stage non-root `Dockerfile`s (`server/server-public`, `server/server-admin`, `db-migrator`) and `.dockerignore`.
-- [ ] Add Ktor `testHost` contract tests, Testcontainers Postgres 16 + MinIO integration tests (verifying 3-tier DB permissions and `409` SQLState mappings), and Konsist architecture boundary tests.
-- [ ] Create full `bruno/` API collection (`00-Health`, `01-Public-Portfolio`, `02-Public-Writeups-And-SEO`, `03-Admin-CMS`, `04-Admin-Documents-And-Stats`, `05-Negative-Tests`) using environment variables and wire into `scripts/smoke.sh --bruno`.
-- [ ] Verify Phase 2 gates: `./kotlin test`, Konsist tests, Docker integration tests, and `./scripts/smoke.sh local --bruno` pass.
+- [x] Implement `server/server-public` clean layers (`domain`, `application`, `infrastructure`, `api`): `/health`, `/health/ready`, read APIs, `POST /api/v1/public/events`, pure `GET /documents/{id}/download`, `/read/{slug}` Ktor HTML DSL Reader View, `/sitemap.xml`, `/robots.txt`, dynamic Wasm SEO shell, Brotli/Gzip compression, and `StatusPages` -> `ApiError`.
+- [x] Implement `server/server-admin` clean layers: `/health`, `/health/ready`, OAuth allowlist + Cloudflare Access JWT + dev-token auth, `*CommandService`/`*QueryService` CRUD routes, R2 presign + magic-byte MIME confirm + delete, analytics overview rollup queries, and `StatusPages` -> `ApiError`.
+- [x] Add multi-stage non-root `Dockerfile`s (`server/server-public`, `server/server-admin`, `db-migrator`) and `.dockerignore`.
+- [x] Add Ktor `testHost` contract tests, Testcontainers Postgres 16 + MinIO integration tests (verifying 3-tier DB permissions and `409` SQLState mappings), and Konsist architecture boundary tests.
+- [x] Create full `bruno/` API collection (`00-Health`, `01-Public-Portfolio`, `02-Public-Writeups-And-SEO`, `03-Admin-CMS`, `04-Admin-Documents-And-Stats`, `05-Negative-Tests`) using environment variables and wire into `scripts/smoke.sh --bruno`.
+- [x] Verify Phase 2 gates: `./kotlin test`, Konsist tests, Docker integration tests, and `./scripts/smoke.sh local --bruno` pass.
 
 ### Phase 3 — Pure KMP Presentation Layer (`//app/presentation`)
 - [ ] Configure `//app/presentation/module.yaml` with zero Compose dependencies.

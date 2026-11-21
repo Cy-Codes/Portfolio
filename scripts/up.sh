@@ -47,6 +47,11 @@ main() {
         run_psql_stdin "${ROOT_DIR}" "${migrator_user}" "${db_name}" "${ROOT_DIR}/${SEED_SCRIPT_REL}"
     fi
 
+    if [ "${profile}" = "local" ]; then
+        echo "==> Building and starting Ktor server-public and server-admin containers..."
+        compose_cmd "${ROOT_DIR}" --profile "local" up -d --build --wait server-public server-admin
+    fi
+
     echo "==> Stack is healthy and ready."
 }
 

@@ -1,0 +1,18 @@
+meta {
+  name: Admin Without Token Returns 401
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{adminBaseUrl}}/api/v1/admin/auth/session
+  body: none
+  auth: none
+}
+
+tests {
+  test("Unauthenticated admin call returns 401 unauthorized", function() {
+    expect(res.status).to.equal(401);
+    expect(res.body.type).to.equal("unauthorized");
+  });
+}

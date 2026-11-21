@@ -1,0 +1,22 @@
+meta {
+  name: Admin Viewer Token Returns 403
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{adminBaseUrl}}/api/v1/admin/auth/session
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{viewerToken}}
+}
+
+tests {
+  test("Non-owner viewer token returns 403 forbidden", function() {
+    expect(res.status).to.equal(403);
+    expect(res.body.type).to.equal("forbidden");
+  });
+}

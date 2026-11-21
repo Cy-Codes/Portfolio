@@ -1,0 +1,21 @@
+meta {
+  name: Get Portfolio Overview
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{publicBaseUrl}}/api/v1/public/portfolio
+  body: none
+  auth: none
+}
+
+tests {
+  test("Portfolio overview returns seeded profile, career, and skills", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.profile).to.be.an("object");
+    expect(res.body.profile.fullName).to.be.a("string");
+    expect(res.body.featuredSkills).to.be.an("array");
+    expect(res.body.featuredSkills.length).to.be.above(0);
+  });
+}

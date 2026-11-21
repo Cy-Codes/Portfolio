@@ -19,24 +19,30 @@ import kotlin.time.Instant
 
 /**
  * S3-compatible [BlobStorage] implementation supporting Cloudflare R2 (`region = "auto"`)
- * and local MinIO (`forcePathStyle = true`).
+ * and local MinIO (`forcePathStyle = true`), including separate internal vs. host-reachable
+ * presigning endpoints for Dockerized deployments.
  */
 class S3BlobStorage(
     private val config: BlobStorageConfig,
     private val clock: Clock = Clock.systemUTC(),
 ) : BlobStorage {
 
-    private val client: S3Client = S3Client {
-        region = config.region
-        endpointUrl = Url.parse(config.endpointUrl)
-        forcePathStyle = config.forcePathStyle
-        credentialsProvider = StaticCredentialsProvider(
-            Credentials(
-                accessKeyId = config.accessKeyId,
-                secretAccessKey = config.secretAccessKey,
-            ),
-        )
-    }
+    private val client: S3Client = buildClient(config.endpointUrl)
+    private val presignClient: S3Client =
+        if (config.publicEndpointUrl == config.endpointUrl) client else buildClient(config.publicEndpointUrl)
+
+    private fun buildClient(targetEndpointUrl: String): S3Client =
+        S3Client {
+            region = config.region
+            endpointUrl = Url.parse(targetEndpointUrl)
+            forcePathStyle = config.forcePathStyle
+            credentialsProvider = StaticCredentialsProvider(
+                Credentials(
+                    accessKeyId = config.accessKeyId,
+                    secretAccessKey = config.secretAccessKey,
+                ),
+            )
+        }
 
     override suspend fun presignPut(
         storageKey: String,
@@ -48,7 +54,7 @@ class S3BlobStorage(
             key = storageKey
             this.contentType = contentType
         }
-        val presigned = client.presignPutObject(putRequest, ttl)
+        val presigned = presignClient.presignPutObject(putRequest, ttl)
         val headers = presigned.headers.entries()
             .associate { (name, values) -> name to values.joinToString(",") }
         val nowJava = clock.instant()
@@ -105,7 +111,7 @@ class S3BlobStorage(
             responseContentType = contentType
             responseContentDisposition = "inline; filename=\"$sanitizedFilename\""
         }
-        return client.presignGetObject(getRequest, ttl).url.toString()
+        return presignClient.presignGetObject(getRequest, ttl).url.toString()
     }
 
     override suspend fun deleteObject(storageKey: String) {
@@ -118,6 +124,9 @@ class S3BlobStorage(
     }
 
     override fun close() {
+        if (presignClient !== client) {
+            presignClient.close()
+        }
         client.close()
     }
 

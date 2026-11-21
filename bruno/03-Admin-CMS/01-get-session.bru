@@ -1,0 +1,22 @@
+meta {
+  name: Get Admin Session
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{adminBaseUrl}}/api/v1/admin/auth/session
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+tests {
+  test("Owner dev token authenticates cleanly", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.role).to.equal("owner");
+  });
+}

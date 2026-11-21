@@ -1,0 +1,19 @@
+meta {
+  name: Public Health Liveness
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{publicBaseUrl}}/health
+  body: none
+  auth: none
+}
+
+tests {
+  test("Public health returns 200 UP", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.status).to.equal("UP");
+    expect(res.body.service).to.equal("server-public");
+  });
+}

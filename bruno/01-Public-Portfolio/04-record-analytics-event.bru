@@ -1,0 +1,28 @@
+meta {
+  name: Record Cookieless Analytics Event
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{publicBaseUrl}}/api/v1/public/events
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "eventType": "PAGE_VIEW",
+    "path": "/projects/adaptive-kmp-portfolio",
+    "entityId": "60000000-0000-0000-0000-000000000001",
+    "referrerHost": "github.com",
+    "platform": "WEB",
+    "viewportTier": "LARGE"
+  }
+}
+
+tests {
+  test("Analytics ingestion returns 202 Accepted", function() {
+    expect(res.status).to.equal(202);
+  });
+}

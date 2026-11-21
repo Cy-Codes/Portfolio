@@ -1,0 +1,26 @@
+meta {
+  name: List Featured Projects
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{publicBaseUrl}}/api/v1/public/projects?page=1&pageSize=10&featured=true
+  body: none
+  auth: none
+}
+
+params:query {
+  page: 1
+  pageSize: 10
+  featured: true
+}
+
+tests {
+  test("Paged projects returns at least one featured project", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.items).to.be.an("array");
+    expect(res.body.items.length).to.be.above(0);
+    expect(res.body.items[0].isFeatured).to.equal(true);
+  });
+}

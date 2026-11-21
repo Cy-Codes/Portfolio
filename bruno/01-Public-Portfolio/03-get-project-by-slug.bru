@@ -1,0 +1,19 @@
+meta {
+  name: Get Project By Slug
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{publicBaseUrl}}/api/v1/public/projects/adaptive-kmp-portfolio
+  body: none
+  auth: none
+}
+
+tests {
+  test("Returns Adaptive KMP Portfolio case study detail", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.slug).to.equal("adaptive-kmp-portfolio");
+    expect(res.body.caseStudyMarkdown).to.be.a("string");
+  });
+}

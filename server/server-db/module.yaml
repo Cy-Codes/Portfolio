@@ -22,3 +22,7 @@ settings:
 
 test-dependencies:
   - $libs.kotlinx.coroutines.test
+  - $libs.konsist
+  - $libs.testcontainers.core
+  - $libs.testcontainers.postgresql
+  - $libs.testcontainers.junit.jupiter

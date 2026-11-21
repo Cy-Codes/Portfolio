@@ -1,0 +1,32 @@
+meta {
+  name: Duplicate Project Slug Returns 409 Conflict
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{adminBaseUrl}}/api/v1/admin/projects
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "slug": "adaptive-kmp-portfolio",
+    "title": "Duplicate Slug Test",
+    "summary": "Must trigger PostgreSQL 23505 unique constraint mapping.",
+    "caseStudyMarkdown": "# Conflict",
+    "status": "ACTIVE"
+  }
+}
+
+tests {
+  test("Duplicate unique key maps SQLState 23505 to 409 conflict", function() {
+    expect(res.status).to.equal(409);
+    expect(res.body.type).to.equal("conflict");
+  });
+}

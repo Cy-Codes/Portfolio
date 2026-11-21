@@ -2,7 +2,7 @@
 # Portfolio Local Infrastructure & Emulation Stack
 # Profiles:
 #   deps  - PostgreSQL 16 + One-Shot Flyway Migrator + MinIO (R2 local emulator)
-#   local - Full local runtime dependencies (+ containerized Ktor servers in Phase 2)
+#   local - Full local runtime dependencies + containerized Ktor servers (4B)
 #   test  - Ephemeral verification dependencies
 # ============================================================================
 
@@ -92,6 +92,92 @@ services:
       - >
         mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}" &&
         mc mb --ignore-existing "local/$${BLOB_STORAGE_BUCKET}"
+
+  server-public:
+    build:
+      context: .
+      dockerfile: server/server-public/Dockerfile
+    image: "portfolio-server-public:${APP_IMAGE_TAG:-local-dev}"
+    profiles: ["local"]
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-migrator:
+        condition: service_completed_successfully
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      APP_ENV: "${APP_ENV:-dev}"
+      PUBLIC_SERVER_HOST: "0.0.0.0"
+      PUBLIC_SERVER_PORT: "${PUBLIC_SERVER_PORT:-8080}"
+      PUBLIC_SITE_BASE_URL: "${PUBLIC_SITE_BASE_URL:-http://127.0.0.1:8080}"
+      ANALYTICS_DAILY_SALT: "${ANALYTICS_DAILY_SALT:-dev-portfolio-analytics-salt}"
+      POSTGRES_HOST: "postgres"
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: "${POSTGRES_DB:-portfolio}"
+      PORTFOLIO_PUBLIC_USER: "${PORTFOLIO_PUBLIC_USER:-portfolio_public}"
+      PORTFOLIO_PUBLIC_PASSWORD: "${PORTFOLIO_PUBLIC_PASSWORD:-dev_public_change_me}"
+      BLOB_STORAGE_ENDPOINT: "http://minio:9000"
+      BLOB_STORAGE_PUBLIC_ENDPOINT: "${BLOB_STORAGE_PUBLIC_ENDPOINT:-http://127.0.0.1:9000}"
+      BLOB_STORAGE_REGION: "${BLOB_STORAGE_REGION:-us-east-1}"
+      BLOB_STORAGE_BUCKET: "${BLOB_STORAGE_BUCKET:-portfolio-assets}"
+      BLOB_STORAGE_ACCESS_KEY: "${BLOB_STORAGE_ACCESS_KEY:-minioadmin}"
+      BLOB_STORAGE_SECRET_KEY: "${BLOB_STORAGE_SECRET_KEY:-dev_minio_change_me}"
+      BLOB_STORAGE_FORCE_PATH_STYLE: "${BLOB_STORAGE_FORCE_PATH_STYLE:-true}"
+    ports:
+      - "${HOST_BIND_ADDRESS:-127.0.0.1}:${PUBLIC_SERVER_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/health/ready >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  server-admin:
+    build:
+      context: .
+      dockerfile: server/server-admin/Dockerfile
+    image: "portfolio-server-admin:${APP_IMAGE_TAG:-local-dev}"
+    profiles: ["local"]
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-migrator:
+        condition: service_completed_successfully
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      APP_ENV: "${APP_ENV:-dev}"
+      ADMIN_SERVER_HOST: "0.0.0.0"
+      ADMIN_SERVER_PORT: "${ADMIN_SERVER_PORT:-8081}"
+      DEV_JWT_SECRET: "${DEV_JWT_SECRET:-dev-only-portfolio-hs256-secret-minimum-32-bytes}"
+      ADMIN_ALLOWED_SUBJECTS: "${ADMIN_ALLOWED_SUBJECTS:-dev-owner}"
+      POSTGRES_HOST: "postgres"
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: "${POSTGRES_DB:-portfolio}"
+      PORTFOLIO_ADMIN_USER: "${PORTFOLIO_ADMIN_USER:-portfolio_admin}"
+      PORTFOLIO_ADMIN_PASSWORD: "${PORTFOLIO_ADMIN_PASSWORD:-dev_admin_change_me}"
+      BLOB_STORAGE_ENDPOINT: "http://minio:9000"
+      BLOB_STORAGE_PUBLIC_ENDPOINT: "${BLOB_STORAGE_PUBLIC_ENDPOINT:-http://127.0.0.1:9000}"
+      BLOB_STORAGE_REGION: "${BLOB_STORAGE_REGION:-us-east-1}"
+      BLOB_STORAGE_BUCKET: "${BLOB_STORAGE_BUCKET:-portfolio-assets}"
+      BLOB_STORAGE_ACCESS_KEY: "${BLOB_STORAGE_ACCESS_KEY:-minioadmin}"
+      BLOB_STORAGE_SECRET_KEY: "${BLOB_STORAGE_SECRET_KEY:-dev_minio_change_me}"
+      BLOB_STORAGE_FORCE_PATH_STYLE: "${BLOB_STORAGE_FORCE_PATH_STYLE:-true}"
+    ports:
+      - "${HOST_BIND_ADDRESS:-127.0.0.1}:${ADMIN_SERVER_PORT:-8081}:8081"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8081/health/ready >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
 
 volumes:
   postgres_data:

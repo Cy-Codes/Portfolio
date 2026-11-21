@@ -1,0 +1,20 @@
+meta {
+  name: XML Sitemap
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{publicBaseUrl}}/sitemap.xml
+  body: none
+  auth: none
+}
+
+tests {
+  test("Sitemap lists published routes and excludes drafts", function() {
+    expect(res.status).to.equal(200);
+    const xml = typeof res.body === "string" ? res.body : JSON.stringify(res.body);
+    expect(xml).to.include("/read/decompose-flowmvi-with-swiftui-and-wasm");
+    expect(xml).to.not.include("cloudflare-r2-presigned-uploads-notes");
+  });
+}

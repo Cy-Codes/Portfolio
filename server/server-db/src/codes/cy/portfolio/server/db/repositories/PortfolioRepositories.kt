@@ -55,8 +55,10 @@ import codes.cy.portfolio.server.db.tables.SkillsTable
 import codes.cy.portfolio.server.db.tables.TextArrayContainsOp
 import codes.cy.portfolio.server.db.tables.WriteupFullTextSearchOp
 import codes.cy.portfolio.server.db.tables.WriteupsTable
+import java.sql.Types
 import java.time.Clock
 import java.time.OffsetDateTime
+import java.util.UUID
 import kotlin.uuid.Uuid
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.SortOrder
@@ -94,6 +96,10 @@ private fun String.parseUuid(fieldName: String): Uuid =
 
 interface PortfolioQueryRepository {
     suspend fun getPortfolioOverview(): PortfolioOverviewDto
+    suspend fun findProfile(): ProfileDto?
+    suspend fun findAllExperiences(): List<ExperienceDto>
+    suspend fun findAllEducation(): List<EducationDto>
+    suspend fun findAllCertifications(): List<CertificationDto>
     suspend fun findAllSkills(): List<SkillDto>
 }
 
@@ -173,48 +179,61 @@ class ExposedPortfolioRepository(
 ) : PortfolioQueryRepository, PortfolioCommandRepository {
 
     override suspend fun getPortfolioOverview(): PortfolioOverviewDto = dbFactory.dbQuery {
-        val profile = ProfileTable
+        PortfolioOverviewDto(
+            profile = loadProfile(),
+            experiences = loadExperiences(),
+            education = loadEducation(),
+            certifications = loadCertifications(),
+            featuredSkills = loadFeaturedSkills(),
+        )
+    }
+
+    override suspend fun findProfile(): ProfileDto? = dbFactory.dbQuery { loadProfile() }
+
+    override suspend fun findAllExperiences(): List<ExperienceDto> = dbFactory.dbQuery { loadExperiences() }
+
+    override suspend fun findAllEducation(): List<EducationDto> = dbFactory.dbQuery { loadEducation() }
+
+    override suspend fun findAllCertifications(): List<CertificationDto> = dbFactory.dbQuery { loadCertifications() }
+
+    private fun JdbcTransaction.loadProfile(): ProfileDto? =
+        ProfileTable
             .selectAll()
             .where { ProfileTable.id eq ProfileTable.SINGLETON_ID }
             .singleOrNull()
             ?.toProfileDto()
 
+    private fun JdbcTransaction.loadExperiences(): List<ExperienceDto> {
         val experienceRows = ExperiencesTable
             .selectAll()
             .orderBy(ExperiencesTable.sortOrder to SortOrder.ASC, ExperiencesTable.startDate to SortOrder.DESC)
             .toList()
-
         val experienceIds = experienceRows.map { it[ExperiencesTable.id] }
         val skillsByExperienceId = loadSkillsByExperience(experienceIds)
-        val experiences = experienceRows.map { row ->
+        return experienceRows.map { row ->
             val expId = row[ExperiencesTable.id]
             row.toExperienceDto(skillsByExperienceId[expId].orEmpty())
         }
+    }
 
-        val education = EducationTable
+    private fun JdbcTransaction.loadEducation(): List<EducationDto> =
+        EducationTable
             .selectAll()
             .orderBy(EducationTable.sortOrder to SortOrder.ASC, EducationTable.startDate to SortOrder.DESC)
             .map { it.toEducationDto() }
 
-        val certifications = CertificationsTable
+    private fun JdbcTransaction.loadCertifications(): List<CertificationDto> =
+        CertificationsTable
             .selectAll()
             .orderBy(CertificationsTable.sortOrder to SortOrder.ASC, CertificationsTable.issuedDate to SortOrder.DESC)
             .map { it.toCertificationDto() }
 
-        val featuredSkills = SkillsTable
+    private fun JdbcTransaction.loadFeaturedSkills(): List<SkillDto> =
+        SkillsTable
             .selectAll()
             .where { SkillsTable.isFeatured eq true }
             .orderBy(SkillsTable.sortOrder to SortOrder.ASC, SkillsTable.name to SortOrder.ASC)
             .map { it.toSkillDto() }
-
-        PortfolioOverviewDto(
-            profile = profile,
-            experiences = experiences,
-            education = education,
-            certifications = certifications,
-            featuredSkills = featuredSkills,
-        )
-    }
 
     override suspend fun findAllSkills(): List<SkillDto> = dbFactory.dbQuery {
         SkillsTable
@@ -718,19 +737,25 @@ class ExposedAnalyticsRepository(
 ) : AnalyticsQueryRepository, AnalyticsCommandRepository {
 
     override suspend fun recordEvent(request: TrackEventRequest, visitorHash: String) {
-        dbFactory.dbQuery {
-            val now = OffsetDateTime.now(clock)
-            val entityUuid = request.entityId?.parseUuid("entityId")
-            AnalyticsEventsTable.insert {
-                it[eventType] = request.eventType
-                it[path] = request.path
-                it[entityId] = entityUuid
-                it[referrerHost] = request.referrerHost
-                it[platform] = request.platform
-                it[viewportTier] = request.viewportTier
-                it[AnalyticsEventsTable.visitorHash] = visitorHash
-                it[createdAt] = now
+        val now = OffsetDateTime.now(clock)
+        val entityJavaUuid = request.entityId?.parseUuid("entityId")?.let { UUID.fromString(it.toString()) }
+        dbFactory.executeUpdateNoReturning(INSERT_EVENT_SQL) { stmt ->
+            stmt.setString(1, request.eventType.name)
+            stmt.setString(2, request.path)
+            if (entityJavaUuid != null) {
+                stmt.setObject(3, entityJavaUuid)
+            } else {
+                stmt.setNull(3, Types.OTHER)
             }
+            if (request.referrerHost != null) {
+                stmt.setString(4, request.referrerHost)
+            } else {
+                stmt.setNull(4, Types.VARCHAR)
+            }
+            stmt.setString(5, request.platform.name)
+            stmt.setString(6, request.viewportTier.name)
+            stmt.setString(7, visitorHash)
+            stmt.setObject(8, now)
         }
     }
 
@@ -812,5 +837,11 @@ class ExposedAnalyticsRepository(
 
     companion object {
         private const val TOP_STATS_LIMIT: Int = 10
+        private const val INSERT_EVENT_SQL: String =
+            """
+            INSERT INTO analytics.events (
+                event_type, path, entity_id, referrer_host, platform, viewport_tier, visitor_hash, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """
     }
 }

@@ -1,0 +1,21 @@
+meta {
+  name: Delete Skill
+  type: http
+  seq: 7
+}
+
+delete {
+  url: {{adminBaseUrl}}/api/v1/admin/skills/{{createdSkillId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+tests {
+  test("Delete skill returns 204 No Content", function() {
+    expect(res.status).to.equal(204);
+  });
+}

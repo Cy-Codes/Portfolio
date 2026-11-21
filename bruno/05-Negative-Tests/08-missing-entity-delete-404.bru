@@ -1,0 +1,22 @@
+meta {
+  name: Delete Missing Skill Returns 404
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{adminBaseUrl}}/api/v1/admin/skills/99999999-9999-9999-9999-999999999999
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+tests {
+  test("Deleting missing UUID returns 404 not_found", function() {
+    expect(res.status).to.equal(404);
+    expect(res.body.type).to.equal("not_found");
+  });
+}

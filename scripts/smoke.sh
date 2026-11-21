@@ -56,13 +56,20 @@ verify_local_smoke() {
     if [ "${run_bruno}" = "true" ]; then
         local bruno_dir="${ROOT_DIR}/bruno"
         if [ ! -d "${bruno_dir}" ]; then
-            die "Bruno directory not found at ${bruno_dir}. Bruno suite is added in Phase 2."
+            die "Bruno directory not found at ${bruno_dir}."
         fi
         require_command "bru" "Install @usebruno/cli (or bruno-cli via Homebrew) to execute --bruno."
         local admin_token
         admin_token="$("${ROOT_DIR}/scripts/dev-token.sh" owner)"
+        local viewer_token
+        viewer_token="$("${ROOT_DIR}/scripts/dev-token.sh" viewer)"
         echo "==> Running Bruno API suite..."
-        (cd "${bruno_dir}" && ADMIN_TOKEN="${admin_token}" bru run --env Local --reporter-cli)
+        (
+            cd "${bruno_dir}" \
+                && bru run -r --env Local \
+                    --env-var "adminToken=${admin_token}" \
+                    --env-var "viewerToken=${viewer_token}"
+        )
     fi
 
     echo "==> Local smoke verification passed."

@@ -1,0 +1,23 @@
+meta {
+  name: Pagination Overflow Returns 400
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{publicBaseUrl}}/api/v1/public/projects?page=21474838&pageSize=100
+  body: none
+  auth: none
+}
+
+params:query {
+  page: 21474838
+  pageSize: 100
+}
+
+tests {
+  test("CWE-190 pagination overflow returns 400 validation_error", function() {
+    expect(res.status).to.equal(400);
+    expect(res.body.type).to.equal("validation_error");
+  });
+}

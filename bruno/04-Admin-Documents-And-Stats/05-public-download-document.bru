@@ -1,0 +1,23 @@
+meta {
+  name: Public Read-Only Document Download
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{publicBaseUrl}}/api/v1/public/documents/{{uploadDocumentId}}/download
+  body: none
+  auth: none
+}
+
+settings {
+  encodeUrl: false
+}
+
+tests {
+  test("Public read-only download returns PDF payload via signed redirect", function() {
+    expect(res.status).to.equal(200);
+    const payload = typeof res.body === "string" ? res.body : JSON.stringify(res.body);
+    expect(payload).to.include("%PDF-1.4");
+  });
+}

@@ -1,0 +1,21 @@
+meta {
+  name: Delete Uploaded Document
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{adminBaseUrl}}/api/v1/admin/documents/{{uploadDocumentId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+tests {
+  test("Delete document removes DB record and MinIO object", function() {
+    expect(res.status).to.equal(204);
+  });
+}

@@ -1,0 +1,20 @@
+meta {
+  name: Robots Txt
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{publicBaseUrl}}/robots.txt
+  body: none
+  auth: none
+}
+
+tests {
+  test("Robots.txt advertises sitemap and disallows admin API", function() {
+    expect(res.status).to.equal(200);
+    const body = typeof res.body === "string" ? res.body : JSON.stringify(res.body);
+    expect(body).to.include("Sitemap:");
+    expect(body).to.include("Disallow: /api/v1/admin/");
+  });
+}

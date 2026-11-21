@@ -1,0 +1,18 @@
+meta {
+  name: Unknown Public API Route Returns 404
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{publicBaseUrl}}/api/v1/public/does-not-exist
+  body: none
+  auth: none
+}
+
+tests {
+  test("Unknown route returns polymorphic 404 not_found JSON", function() {
+    expect(res.status).to.equal(404);
+    expect(res.body.type).to.equal("not_found");
+  });
+}

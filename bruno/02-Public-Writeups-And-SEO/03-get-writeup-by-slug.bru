@@ -1,0 +1,20 @@
+meta {
+  name: Get Published Writeup By Slug
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{publicBaseUrl}}/api/v1/public/writeups/decompose-flowmvi-with-swiftui-and-wasm
+  body: none
+  auth: none
+}
+
+tests {
+  test("Returns full writeup markdown body", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.slug).to.equal("decompose-flowmvi-with-swiftui-and-wasm");
+    expect(res.body.status).to.equal("PUBLISHED");
+    expect(res.body.bodyMarkdown).to.include("demo:adaptive-breakpoints");
+  });
+}

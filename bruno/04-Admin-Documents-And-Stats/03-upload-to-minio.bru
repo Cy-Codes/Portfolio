@@ -1,0 +1,31 @@
+meta {
+  name: Upload PDF Bytes To MinIO
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{presignedPutUrl}}
+  body: text
+  auth: none
+}
+
+headers {
+  Content-Type: application/pdf
+}
+
+body:text {
+  %PDF-1.4
+  %Portfolio Bruno PDF Smoke Sample
+  %%EOF
+}
+
+settings {
+  encodeUrl: false
+}
+
+tests {
+  test("Direct PUT to presigned MinIO URL succeeds", function() {
+    expect(res.status).to.equal(200);
+  });
+}

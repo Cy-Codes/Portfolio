@@ -1,0 +1,41 @@
+meta {
+  name: Presign PDF Document Upload
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{adminBaseUrl}}/api/v1/admin/documents/presign
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "originalFilename": "bruno-smoke.pdf",
+    "mimeType": "application/pdf",
+    "sizeBytes": 48,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && res.body) {
+    bru.setVar("uploadDocumentId", res.body.documentId);
+    bru.setVar("uploadStorageKey", res.body.storageKey);
+    bru.setVar("presignedPutUrl", res.body.presignedPutUrl);
+  }
+}
+
+tests {
+  test("Presign returns documentId, storageKey, and host-reachable presignedPutUrl", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.documentId).to.be.a("string");
+    expect(res.body.storageKey).to.include(res.body.documentId);
+    expect(res.body.presignedPutUrl).to.include("http");
+  });
+}

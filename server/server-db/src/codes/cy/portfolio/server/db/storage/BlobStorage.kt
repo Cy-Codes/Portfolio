@@ -18,6 +18,7 @@ data class StoredObjectHead(
 
 data class BlobStorageConfig(
     val endpointUrl: String,
+    val publicEndpointUrl: String = endpointUrl,
     val region: String,
     val bucket: String,
     val accessKeyId: String,
@@ -31,27 +32,26 @@ data class BlobStorageConfig(
         const val DEFAULT_ACCESS_KEY: String = "minioadmin"
         const val DEFAULT_SECRET_KEY: String = "dev_minio_change_me"
 
-        fun fromEnv(env: (String) -> String? = System::getenv): BlobStorageConfig =
-            BlobStorageConfig(
-                endpointUrl = env("BLOB_STORAGE_ENDPOINT")?.takeIf { it.isNotBlank() } ?: DEFAULT_ENDPOINT,
+        fun fromEnv(env: (String) -> String? = System::getenv): BlobStorageConfig {
+            val endpoint = env("BLOB_STORAGE_ENDPOINT")?.takeIf { it.isNotBlank() } ?: DEFAULT_ENDPOINT
+            val publicEndpoint = env("BLOB_STORAGE_PUBLIC_ENDPOINT")?.takeIf { it.isNotBlank() } ?: endpoint
+            return BlobStorageConfig(
+                endpointUrl = endpoint,
+                publicEndpointUrl = publicEndpoint,
                 region = env("BLOB_STORAGE_REGION")?.takeIf { it.isNotBlank() } ?: DEFAULT_REGION,
                 bucket = env("BLOB_STORAGE_BUCKET")?.takeIf { it.isNotBlank() } ?: DEFAULT_BUCKET,
                 accessKeyId = env("BLOB_STORAGE_ACCESS_KEY")?.takeIf { it.isNotBlank() } ?: DEFAULT_ACCESS_KEY,
                 secretAccessKey = env("BLOB_STORAGE_SECRET_KEY")?.takeIf { it.isNotBlank() } ?: DEFAULT_SECRET_KEY,
                 forcePathStyle = env("BLOB_STORAGE_FORCE_PATH_STYLE")?.toBooleanStrictOrNull() ?: true,
             )
+        }
     }
 }
 
-interface BlobStorage : AutoCloseable {
-    suspend fun presignPut(
-        storageKey: String,
-        contentType: String,
-        ttl: Duration = DEFAULT_PRESIGN_TTL,
-    ): PresignedPutObject
-
-    suspend fun verifyObject(storageKey: String): StoredObjectHead?
-
+/**
+ * Least-privilege read-only object storage capability exposed to public read services.
+ */
+interface BlobStorageReader : AutoCloseable {
     suspend fun presignGet(
         storageKey: String,
         downloadFilename: String,
@@ -59,9 +59,22 @@ interface BlobStorage : AutoCloseable {
         ttl: Duration = DEFAULT_PRESIGN_TTL,
     ): String
 
-    suspend fun deleteObject(storageKey: String)
-
     companion object {
         val DEFAULT_PRESIGN_TTL: Duration = 15.minutes
     }
+}
+
+/**
+ * Full read-write object storage capability restricted to admin CMS services.
+ */
+interface BlobStorage : BlobStorageReader {
+    suspend fun presignPut(
+        storageKey: String,
+        contentType: String,
+        ttl: Duration = BlobStorageReader.DEFAULT_PRESIGN_TTL,
+    ): PresignedPutObject
+
+    suspend fun verifyObject(storageKey: String): StoredObjectHead?
+
+    suspend fun deleteObject(storageKey: String)
 }

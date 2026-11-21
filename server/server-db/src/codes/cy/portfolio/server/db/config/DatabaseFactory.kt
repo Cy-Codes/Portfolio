@@ -2,6 +2,8 @@ package codes.cy.portfolio.server.db.config
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import java.sql.PreparedStatement
+import java.sql.Statement
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -28,6 +30,29 @@ class DatabaseFactory private constructor(
                 block()
             }
         }
+
+    /**
+     * Executes a single parameterized DML statement with [Statement.NO_GENERATED_KEYS]
+     * so PgJDBC does not append `RETURNING *` on insert-only least-privilege tables.
+     */
+    suspend fun executeUpdateNoReturning(
+        sql: String,
+        bind: (PreparedStatement) -> Unit,
+    ): Int = withContext(Dispatchers.IO) {
+        dataSource.connection.use { conn ->
+            try {
+                conn.prepareStatement(sql, Statement.NO_GENERATED_KEYS).use { stmt ->
+                    bind(stmt)
+                    val affected = stmt.executeUpdate()
+                    conn.commit()
+                    affected
+                }
+            } catch (ex: Throwable) {
+                runCatching { conn.rollback() }
+                throw ex
+            }
+        }
+    }
 
     suspend fun checkSchemaReady(): SchemaReadinessStatus =
         withContext(Dispatchers.IO) {
