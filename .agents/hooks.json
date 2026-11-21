@@ -1,0 +1,53 @@
+{
+  "portfolio-write-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "edit_file|write_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ./hooks/guard_writes.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "portfolio-command-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ./hooks/guard_commands.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "portfolio-verify-tracker": {
+    "PostToolUse": [
+      {
+        "matcher": "edit_file|write_file|run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ./hooks/track_verification.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "portfolio-verify-on-stop": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "python3 ./hooks/require_verify_on_stop.py",
+        "timeout": 10
+      }
+    ]
+  }
+}
