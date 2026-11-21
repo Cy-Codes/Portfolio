@@ -14,10 +14,11 @@ dependencies:
   - $libs.kotlinx.coroutines.core
   - $libs.kotlinx.datetime
   - $libs.logback.classic
+  - $kotlin.serialization.json
 
 settings:
   kotlin:
-    serialization: json
+    serialization: enabled
 
 test-dependencies:
   - $libs.kotlinx.coroutines.test

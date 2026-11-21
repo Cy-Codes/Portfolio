@@ -5,9 +5,10 @@ product:
 dependencies:
   - $ktor.resources
   - $libs.kotlinx.datetime
+  - $kotlin.serialization.json
 
 settings:
   kotlin:
-    serialization: json
+    serialization: enabled
   ktor:
     enabled: true
