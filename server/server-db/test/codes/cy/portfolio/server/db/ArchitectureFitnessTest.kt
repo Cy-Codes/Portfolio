@@ -95,11 +95,56 @@ class ArchitectureFitnessTest {
     }
 
     @Test
-    fun `all data classes across core, presentation, composeUi, and server modules declare immutable val properties only`() {
+    fun `adminShared module contains zero Ktor server or Exposed imports across all KMP source sets`() {
+        val adminSharedDirs = listOf(
+            "app/adminShared/src",
+            "app/adminShared/src@jvm",
+            "app/adminShared/src@wasmJs",
+        ).filter { Files.isDirectory(repoRoot.resolve(it)) }
+
+        adminSharedDirs.forEach { dir ->
+            scopeForRelativeDir(dir).files.assertFalse { file ->
+                file.hasImport { imp ->
+                    imp.name.startsWith("io.ktor.server.") ||
+                        imp.name.startsWith("org.jetbrains.exposed.")
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `public client modules contain zero admin package imports`() {
+        val publicClientDirs = listOf(
+            "app/presentation/src",
+            "app/presentation/src@jvm",
+            "app/presentation/src@android",
+            "app/presentation/src@ios",
+            "app/presentation/src@wasmJs",
+            "app/composeUi/src",
+            "app/composeUi/src@jvm",
+            "app/composeUi/src@android",
+            "app/composeUi/src@ios",
+            "app/composeUi/src@wasmJs",
+            "app/webApp/src",
+            "app/desktopApp/src",
+            "app/androidApp/src",
+            "app/iosApp/src",
+        ).filter { Files.isDirectory(repoRoot.resolve(it)) }
+
+        publicClientDirs.forEach { dir ->
+            scopeForRelativeDir(dir).files.assertFalse { file ->
+                file.hasImport { imp -> imp.name.startsWith("codes.cy.portfolio.admin.") }
+            }
+        }
+    }
+
+    @Test
+    fun `all data classes across core, presentation, composeUi, adminShared, and server modules declare immutable val properties only`() {
         listOf(
             "core/src",
             "app/presentation/src",
             "app/composeUi/src",
+            "app/adminShared/src",
             "server/server-public/src",
             "server/server-admin/src",
         ).forEach { dir ->

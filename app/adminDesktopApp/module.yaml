@@ -3,6 +3,8 @@ product: jvm/app
 dependencies:
   - //app/adminShared
   - $compose.desktop.currentOs
+  - $libs.decompose
+  - $libs.decompose.extensions.compose
   - $libs.kotlinx.coroutines.swing
   - $libs.logback.classic
 

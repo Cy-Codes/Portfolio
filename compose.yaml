@@ -127,6 +127,9 @@ services:
       BLOB_STORAGE_ACCESS_KEY: "${BLOB_STORAGE_ACCESS_KEY:-minioadmin}"
       BLOB_STORAGE_SECRET_KEY: "${BLOB_STORAGE_SECRET_KEY:-dev_minio_change_me}"
       BLOB_STORAGE_FORCE_PATH_STYLE: "${BLOB_STORAGE_FORCE_PATH_STYLE:-true}"
+      WEB_STATIC_DIR: "${WEB_STATIC_DIR:-/app/web-static}"
+    volumes:
+      - ./build/tasks/_webApp_buildWasmJsAppWasmJsDebug:/app/web-static:ro
     ports:
       - "${HOST_BIND_ADDRESS:-127.0.0.1}:${PUBLIC_SERVER_PORT:-8080}:8080"
     healthcheck:
@@ -170,6 +173,9 @@ services:
       BLOB_STORAGE_ACCESS_KEY: "${BLOB_STORAGE_ACCESS_KEY:-minioadmin}"
       BLOB_STORAGE_SECRET_KEY: "${BLOB_STORAGE_SECRET_KEY:-dev_minio_change_me}"
       BLOB_STORAGE_FORCE_PATH_STYLE: "${BLOB_STORAGE_FORCE_PATH_STYLE:-true}"
+      WEB_STATIC_DIR: "${WEB_STATIC_DIR:-/app/web-static}"
+    volumes:
+      - ./build/tasks/_webApp_buildWasmJsAppWasmJsDebug:/app/web-static:ro
     ports:
       - "${HOST_BIND_ADDRESS:-127.0.0.1}:${ADMIN_SERVER_PORT:-8081}:8081"
     healthcheck:

@@ -13,7 +13,7 @@
 | **Phase 3** | Pure KMP Presentation Layer (`//app/presentation` — Decompose + FlowMVI) | Done | FlowMVI store unit tests + Konsist compose-free guard pass across all KMP targets | 2026-11-20 |
 | **Phase 4** | Public Compose UI (`//app/composeUi`, Android, Desktop, `wasmJs`) | Done | Adaptive resize checks (`Compact`/`Medium`/`Expanded`/`Large`/`Extra-Large`), `Highlights` + `DemoRegistry`, `wasmJs` URL history verified | 2026-11-21 |
 | **Phase 5** | Native SwiftUI iOS (`//app/iosApp`) + Embedded Compose Demo Islands | Done | Xcode iOS build + SwiftUI `TabView`/`NavigationSplitView` + inline `ComposeUIViewController` demo verified | 2026-11-21 |
-| **Phase 6** | Admin Compose UI (`//app/adminShared`, `//app/adminDesktopApp`, `//app/adminWebApp`) + Full E2E Smoke | Not Started | Admin stats, CMS CRUD, live Markdown/demo preview, R2 presigned upload, full `./scripts/smoke.sh local --bruno` pass | — |
+| **Phase 6** | Admin Compose UI (`//app/adminShared`, `//app/adminDesktopApp`, `//app/adminWebApp`) + Full E2E Smoke | Done | Admin stats, CMS CRUD, live Markdown/demo preview, R2 presigned upload, full `./scripts/smoke.sh local --bruno` pass | 2026-11-21 |
 
 ---
 
@@ -385,6 +385,6 @@ erDiagram
 - [x] Verify Phase 5 gates: Xcode iOS simulator build passes and inline Compose demo islands render smoothly inside native SwiftUI writeups.
 
 ### Phase 6 — Admin Compose UI (`//app/adminShared`, `//app/adminDesktopApp`, `//app/adminWebApp`) & Full End-to-End Verification
-- [ ] Build `//app/adminShared`, `//app/adminDesktopApp`, and `//app/adminWebApp` (`wasmJs`) using Decompose + FlowMVI + Ktor Client.
-- [ ] Implement Admin Auth flow (OAuth / Cloudflare Access / local dev-token), Analytics Stats Dashboard (range filters, top writeups/projects, downloads, referrers, platform & viewport tiers), Career & Project CMS editors, Markdown Writeup editor with pixel-identical `//app/composeUi` + `DemoRegistry` live preview, and direct-to-R2 presigned document uploader.
-- [ ] Verify Phase 6 gates: full `compose.yaml` (`local` profile) startup, live admin publish -> public API -> `/read/{slug}` + `wasmJs` render, and full `./scripts/smoke.sh local --bruno` pass.
+- [x] Build `//app/adminShared`, `//app/adminDesktopApp`, and `//app/adminWebApp` (`wasmJs`) using Decompose + FlowMVI + Ktor Client.
+- [x] Implement Admin Auth flow (OAuth / Cloudflare Access / local dev-token), Analytics Stats Dashboard (range filters, top writeups/projects, downloads, referrers, platform & viewport tiers), Career & Project CMS editors, Markdown Writeup editor with pixel-identical `//app/composeUi` + `DemoRegistry` live preview, and direct-to-R2 presigned document uploader.
+- [x] Verify Phase 6 gates: full `compose.yaml` (`local` profile) startup, live admin publish -> public API -> `/read/{slug}` + `wasmJs` render, and full `./scripts/smoke.sh local --bruno` pass.

@@ -3,12 +3,39 @@ product:
   platforms: [ jvm, wasmJs ]
 
 dependencies:
-  - //core
-  - //app/composeUi
+  - //core: exported
+  - //app/composeUi: exported
   - $compose.runtime
   - $compose.foundation
   - $compose.material3
   - $compose.ui
+  - $libs.decompose: exported
+  - $libs.decompose.extensions.compose: exported
+  - $libs.essenty.lifecycle.coroutines
+  - $libs.flowmvi.core: exported
+  - $libs.flowmvi.essenty
+  - $libs.kotlinx.coroutines.core
+  - $libs.kotlinx.datetime: exported
+  - $libs.ktor.client.core
+  - $libs.ktor.client.resources
+  - $libs.ktor.client.content.negotiation
+  - $libs.ktor.serialization.kotlinx.json
+
+dependencies@jvm:
+  - $libs.ktor.client.cio
+
+dependencies@wasmJs:
+  - $libs.ktor.client.js
+  - $libs.kotlinx.browser
 
 settings:
   compose: enabled
+  kotlin:
+    serialization: json
+  ktor:
+    enabled: true
+
+test-dependencies:
+  - $libs.kotlinx.coroutines.test
+  - $libs.flowmvi.test
+  - $libs.ktor.client.mock
