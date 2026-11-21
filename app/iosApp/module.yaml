@@ -1,8 +1,10 @@
 product: ios/app
 
 dependencies:
+  - //core
   - //app/presentation
   - //app/composeUi
+  - $libs.kotlinx.coroutines.core
   - $compose.ui
 
 settings:

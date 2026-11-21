@@ -27,6 +27,10 @@
 			exceptions = (
 				96F41D215DC87E1670B53C54 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
 			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
 			path = src;
 			sourceTree = SOURCE_ROOT;
 		};
@@ -154,9 +158,9 @@
 				KOTLIN_CLI_WRAPPER_PATH = "$(SRCROOT)/../../kotlin";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "codes.cy.portfolio.Portfolio";
+				PRODUCT_BUNDLE_IDENTIFIER = codes.cy.portfolio.Portfolio;
 				PRODUCT_MODULE_NAME = app;
-				PRODUCT_NAME = "Portfolio";
+				PRODUCT_NAME = Portfolio;
 				SDKROOT = iphoneos;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -169,37 +173,6 @@
 				);
 			};
 			name = Debug;
-		};
-		BF5B65D6B5FD9743CAF73867 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				ENABLE_PREVIEWS = YES;
-				FRAMEWORK_SEARCH_PATHS = "$(inherited) $(TARGET_BUILD_DIR)/AmperFrameworks";
-				INFOPLIST_FILE = src/Info.plist;
-				KOTLIN_CLI_WRAPPER_PATH = "$(SRCROOT)/../../kotlin";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "codes.cy.portfolio.Portfolio";
-				PRODUCT_MODULE_NAME = app;
-				PRODUCT_NAME = "Portfolio";
-				SDKROOT = iphoneos;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = (
-					1,
-					2,
-				);
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
 		};
 		84E59AF046ADE2B2140D7FDE /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -321,23 +294,54 @@
 			};
 			name = Debug;
 		};
+		BF5B65D6B5FD9743CAF73867 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(inherited) $(TARGET_BUILD_DIR)/AmperFrameworks";
+				INFOPLIST_FILE = src/Info.plist;
+				KOTLIN_CLI_WRAPPER_PATH = "$(SRCROOT)/../../kotlin";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = codes.cy.portfolio.Portfolio;
+				PRODUCT_MODULE_NAME = app;
+				PRODUCT_NAME = Portfolio;
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = (
+					1,
+					2,
+				);
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		E73D784DFD73060AEA0D1F35 /* Build configuration list for PBXNativeTarget "app" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				831D24C7953D2DDA54D2296D /* Debug */,
-				BF5B65D6B5FD9743CAF73867 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		E0182CE9D38633BC85628424 /* Build configuration list for PBXProject "module" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AEAA12CD185DE78C62FCDAF6 /* Debug */,
 				84E59AF046ADE2B2140D7FDE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E73D784DFD73060AEA0D1F35 /* Build configuration list for PBXNativeTarget "app" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				831D24C7953D2DDA54D2296D /* Debug */,
+				BF5B65D6B5FD9743CAF73867 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

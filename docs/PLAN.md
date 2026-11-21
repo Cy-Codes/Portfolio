@@ -12,7 +12,7 @@
 | **Phase 2** | Ktor `server/server-public` & `server/server-admin`, Dockerfiles, Testcontainers, Konsist, Bruno | Done | `./kotlin test`, Konsist boundaries, Testcontainers Postgres/MinIO tests, `./scripts/smoke.sh local --bruno` pass | 2026-11-20 |
 | **Phase 3** | Pure KMP Presentation Layer (`//app/presentation` — Decompose + FlowMVI) | Done | FlowMVI store unit tests + Konsist compose-free guard pass across all KMP targets | 2026-11-20 |
 | **Phase 4** | Public Compose UI (`//app/composeUi`, Android, Desktop, `wasmJs`) | Done | Adaptive resize checks (`Compact`/`Medium`/`Expanded`/`Large`/`Extra-Large`), `Highlights` + `DemoRegistry`, `wasmJs` URL history verified | 2026-11-21 |
-| **Phase 5** | Native SwiftUI iOS (`//app/iosApp`) + Embedded Compose Demo Islands | Not Started | Xcode iOS build + SwiftUI `TabView`/`NavigationSplitView` + inline `ComposeUIViewController` demo verified | — |
+| **Phase 5** | Native SwiftUI iOS (`//app/iosApp`) + Embedded Compose Demo Islands | Done | Xcode iOS build + SwiftUI `TabView`/`NavigationSplitView` + inline `ComposeUIViewController` demo verified | 2026-11-21 |
 | **Phase 6** | Admin Compose UI (`//app/adminShared`, `//app/adminDesktopApp`, `//app/adminWebApp`) + Full E2E Smoke | Not Started | Admin stats, CMS CRUD, live Markdown/demo preview, R2 presigned upload, full `./scripts/smoke.sh local --bruno` pass | — |
 
 ---
@@ -379,10 +379,10 @@ erDiagram
 - [x] Verify Phase 4 gates: smooth live resizing across all 5 breakpoints, `wasmJs` URL navigation & SEO shell check, and Android/Desktop/Web builds pass.
 
 ### Phase 5 — Native SwiftUI iOS (`//app/iosApp`)
-- [ ] Expose Decompose `RootComponent` + `Value<State>` cleanly to Swift (`@StateValue` / `StackView` wrappers).
-- [ ] Implement native SwiftUI visitor screens (`TabView` on iPhone `compact`, `NavigationSplitView` on iPad `regular`) matching `//app/presentation` state.
-- [ ] Implement native Swift Markdown + code syntax highlighting and embed occasional `demo:<id>` interactive Compose demos via `ComposeUIViewController` + `UIViewControllerRepresentable`.
-- [ ] Verify Phase 5 gates: Xcode iOS simulator build passes and inline Compose demo islands render smoothly inside native SwiftUI writeups.
+- [x] Expose Decompose `RootComponent` + `Value<State>` cleanly to Swift (`@StateValue` / `StackView` wrappers).
+- [x] Implement native SwiftUI visitor screens (`TabView` on iPhone `compact`, `NavigationSplitView` on iPad `regular`) matching `//app/presentation` state.
+- [x] Implement native Swift Markdown + code syntax highlighting and embed occasional `demo:<id>` interactive Compose demos via `ComposeUIViewController` + `UIViewControllerRepresentable`.
+- [x] Verify Phase 5 gates: Xcode iOS simulator build passes and inline Compose demo islands render smoothly inside native SwiftUI writeups.
 
 ### Phase 6 — Admin Compose UI (`//app/adminShared`, `//app/adminDesktopApp`, `//app/adminWebApp`) & Full End-to-End Verification
 - [ ] Build `//app/adminShared`, `//app/adminDesktopApp`, and `//app/adminWebApp` (`wasmJs`) using Decompose + FlowMVI + Ktor Client.
