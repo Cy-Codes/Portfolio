@@ -50,6 +50,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import pro.respawn.flowmvi.test.subscribeAndTest
 import pro.respawn.flowmvi.test.wait
+import kotlin.time.Duration.Companion.milliseconds
 
 class PortfolioStoresTest {
 
@@ -101,7 +102,7 @@ class PortfolioStoresTest {
             assertEquals(listOf("Ktor"), filtered.filteredSkills.map { it.name })
 
             emit(ProfileIntent.OpenProjects)
-            assertEquals(ProfileAction.NavigateToProjects, withTimeout(1000L) { actions.first() })
+            assertEquals(ProfileAction.NavigateToProjects, withTimeout(1000L.milliseconds) { actions.first() })
 
             fakeApi.nextError = ApiError.InternalError("Down")
             emit(ProfileIntent.Refresh)
@@ -133,7 +134,7 @@ class PortfolioStoresTest {
             emit(ProjectsIntent.SelectProject("kmp-portfolio"))
             wait()
             assertEquals("kmp-portfolio", states.value.selectedProject?.slug)
-            assertEquals(ProjectsAction.ProjectSelected("kmp-portfolio"), withTimeout(1000L) { actions.first() })
+            assertEquals(ProjectsAction.ProjectSelected("kmp-portfolio"), withTimeout(1000L.milliseconds) { actions.first() })
             assertTrue(
                 fakeApi.recordedEvents.any {
                     it.eventType == AnalyticsEventType.PROJECT_CLICK && it.path == "/projects/kmp-portfolio"
@@ -143,21 +144,21 @@ class PortfolioStoresTest {
     }
 
     @Test
-    fun `WriteupsStore and ReadArticleStore coordinate search reading and analytics`() = runTest {
+    fun `WriteUpsStore and ReadArticleStore coordinate search reading and analytics`() = runTest {
         val fakeApi = FakePortfolioApi()
-        val writeupsStore = WriteupsStoreFactory.create(
+        val writeUpsStore = WriteupsStoreFactory.create(
             api = fakeApi,
             analyticsSender = fakeApi,
             platform = ClientPlatform.ANDROID,
             viewportTierProvider = { ViewportTier.COMPACT },
         )
 
-        writeupsStore.subscribeAndTest {
+        writeUpsStore.subscribeAndTest {
             wait()
             assertEquals(1, states.value.items.size)
 
             emit(WriteupsIntent.SelectWriteup("decompose-guide"))
-            assertEquals(WriteupsAction.OpenWriteup("decompose-guide"), withTimeout(1000L) { actions.first() })
+            assertEquals(WriteupsAction.OpenWriteup("decompose-guide"), withTimeout(1000L.milliseconds) { actions.first() })
         }
 
         val readerStore = ReadArticleStoreFactory.create(
@@ -180,7 +181,7 @@ class PortfolioStoresTest {
             emit(ReadArticleIntent.OpenReaderHtmlVersion)
             assertEquals(
                 ReadArticleAction.OpenExternalUrl("https://portfolio.example.test/read/decompose-guide"),
-                withTimeout(1000L) { actions.first() },
+                withTimeout(1000L.milliseconds) { actions.first() },
             )
         }
     }
@@ -208,7 +209,7 @@ class PortfolioStoresTest {
             val doc = resumesOnly.filteredDocuments.single()
             emit(ResumeDocsIntent.RequestDownload(doc))
             wait()
-            val action = withTimeout(1000L) { actions.first() }
+            val action = withTimeout(1000L.milliseconds) { actions.first() }
             assertEquals(
                 ResumeDocsAction.TriggerDownload(
                     url = "https://portfolio.example.test/api/v1/public/documents/${doc.id}/download",
