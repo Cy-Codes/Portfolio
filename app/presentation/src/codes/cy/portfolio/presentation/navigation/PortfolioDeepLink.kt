@@ -58,13 +58,20 @@ object PortfolioDeepLink {
         }
 
     fun fromPath(rawPath: String?): RootConfig {
-        val normalized = rawPath
-            ?.substringBefore('?')
-            ?.substringBefore('#')
-            ?.trim()
-            ?.trimEnd('/')
-            ?.ifEmpty { "/" }
-            ?: "/"
+        val rawTrimmed = rawPath?.trim().orEmpty()
+        val pathOnly = if (rawTrimmed.contains("://")) {
+            val afterScheme = rawTrimmed.substringAfter("://")
+            val slashIndex = afterScheme.indexOf('/')
+            if (slashIndex >= 0) afterScheme.substring(slashIndex) else "/"
+        } else {
+            rawTrimmed
+        }
+        val normalized = pathOnly
+            .substringBefore('?')
+            .substringBefore('#')
+            .trim()
+            .trimEnd('/')
+            .ifEmpty { "/" }
 
         if (normalized == "/" || normalized == "/about") {
             return RootConfig.Profile

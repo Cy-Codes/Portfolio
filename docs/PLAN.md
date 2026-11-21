@@ -11,7 +11,7 @@
 | **Phase 1** | Tooling, Standards, Docker, 4B Module Scaffold, `//core` & `//server/server-db` | Done | `compose.yaml` (`deps`) healthy, Flyway + `01_schema_structure_tests.sql` pass, `./kotlin build` passes | 2026-11-20 |
 | **Phase 2** | Ktor `server/server-public` & `server/server-admin`, Dockerfiles, Testcontainers, Konsist, Bruno | Done | `./kotlin test`, Konsist boundaries, Testcontainers Postgres/MinIO tests, `./scripts/smoke.sh local --bruno` pass | 2026-11-20 |
 | **Phase 3** | Pure KMP Presentation Layer (`//app/presentation` — Decompose + FlowMVI) | Done | FlowMVI store unit tests + Konsist compose-free guard pass across all KMP targets | 2026-11-20 |
-| **Phase 4** | Public Compose UI (`//app/composeUi`, Android, Desktop, `wasmJs`) | Not Started | Adaptive resize checks (`Compact`/`Medium`/`Expanded`/`Large`/`Extra-Large`), `Highlights` + `DemoRegistry`, `wasmJs` URL history verified | — |
+| **Phase 4** | Public Compose UI (`//app/composeUi`, Android, Desktop, `wasmJs`) | Done | Adaptive resize checks (`Compact`/`Medium`/`Expanded`/`Large`/`Extra-Large`), `Highlights` + `DemoRegistry`, `wasmJs` URL history verified | 2026-11-21 |
 | **Phase 5** | Native SwiftUI iOS (`//app/iosApp`) + Embedded Compose Demo Islands | Not Started | Xcode iOS build + SwiftUI `TabView`/`NavigationSplitView` + inline `ComposeUIViewController` demo verified | — |
 | **Phase 6** | Admin Compose UI (`//app/adminShared`, `//app/adminDesktopApp`, `//app/adminWebApp`) + Full E2E Smoke | Not Started | Admin stats, CMS CRUD, live Markdown/demo preview, R2 presigned upload, full `./scripts/smoke.sh local --bruno` pass | — |
 
@@ -372,11 +372,11 @@ erDiagram
 - [x] Verify Phase 3 gates: FlowMVI unit tests and Konsist rule (`app/presentation` imports zero Compose symbols) pass.
 
 ### Phase 4 — Public Compose UI (`//app/composeUi`, Android, Desktop, `wasmJs`)
-- [ ] Build custom editorial portfolio design system over Material 3 Adaptive (`currentWindowAdaptiveInfo(supportLargeAndXLargeWidth = true)` across `Compact`, `Medium`, `Expanded`, `Large`, `Extra-Large` + input-modality polish).
-- [ ] Implement all visitor screens (Home/Bio, Experience/Education/Certs/Skills, Projects list-detail, Writeups list-detail/reader, Resume & Documents download via pure `GET` + analytics event).
-- [ ] Integrate `multiplatform-markdown-renderer` + `Highlights` syntax highlighting + `DemoRegistry` (`demo:<id>` fenced blocks with interactive Compose demos).
-- [ ] Wire `//app/webApp` `wasmJs` entry point with Decompose `WebHistoryController` browser URL + Back/Forward synchronization, and verify `//app/desktopApp` resizable window and `//app/androidApp`.
-- [ ] Verify Phase 4 gates: smooth live resizing across all 5 breakpoints, `wasmJs` URL navigation & SEO shell check, and Android/Desktop/Web builds pass.
+- [x] Build custom editorial portfolio design system over Material 3 Adaptive (`currentWindowAdaptiveInfo(supportLargeAndXLargeWidth = true)` across `Compact`, `Medium`, `Expanded`, `Large`, `Extra-Large` + input-modality polish).
+- [x] Implement all visitor screens (Home/Bio, Experience/Education/Certs/Skills, Projects list-detail, Writeups list-detail/reader, Resume & Documents download via pure `GET` + analytics event).
+- [x] Integrate `multiplatform-markdown-renderer` + `Highlights` syntax highlighting + `DemoRegistry` (`demo:<id>` fenced blocks with interactive Compose demos).
+- [x] Wire `//app/webApp` `wasmJs` entry point with Decompose `WebHistoryController` browser URL + Back/Forward synchronization, and verify `//app/desktopApp` resizable window and `//app/androidApp`.
+- [x] Verify Phase 4 gates: smooth live resizing across all 5 breakpoints, `wasmJs` URL navigation & SEO shell check, and Android/Desktop/Web builds pass.
 
 ### Phase 5 — Native SwiftUI iOS (`//app/iosApp`)
 - [ ] Expose Decompose `RootComponent` + `Value<State>` cleanly to Swift (`@StateValue` / `StackView` wrappers).

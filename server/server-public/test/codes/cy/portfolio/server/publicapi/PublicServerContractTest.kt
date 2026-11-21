@@ -224,6 +224,31 @@ class PublicServerContractTest {
         assertNotNull(decodedErr.traceId)
         assertFalse(internalErrResp.bodyAsText().contains("db-password-secret"))
     }
+
+    @Test
+    fun `wasm SEO shell emits import-map-loader and module webApp mjs script when static dir provides them`() = testApplication {
+        val tempDir = kotlin.io.path.createTempDirectory("portfolio-wasm-static")
+        try {
+            java.nio.file.Files.writeString(tempDir.resolve("import-map-loader.js"), "// import map")
+            java.nio.file.Files.writeString(tempDir.resolve("webApp.mjs"), "export default {};")
+            java.nio.file.Files.writeString(tempDir.resolve("styles.css"), "html, body { margin: 0; }")
+
+            val harness = TestPublicHarness()
+            application { publicModule(harness.modules(webStaticDir = tempDir.toAbsolutePath().toString())) }
+
+            val response = client.get("/writeups/published-writeup")
+            assertEquals(HttpStatusCode.OK, response.status)
+            val html = response.bodyAsText()
+            assertTrue(html.contains("<link href=\"/styles.css\" rel=\"stylesheet\">"))
+            assertTrue(html.contains("<script src=\"/import-map-loader.js\"></script>"))
+            assertTrue(html.contains("<script src=\"/webApp.mjs\" type=\"module\"></script>"))
+            assertTrue(html.contains("TechArticle"))
+            assertTrue(html.contains("id=\"portfolio-root\""))
+            assertTrue(html.contains("Compose &amp; SwiftUI Interop"))
+        } finally {
+            tempDir.toFile().deleteRecursively()
+        }
+    }
 }
 
 private class TestPublicHarness {
@@ -287,13 +312,17 @@ private class TestPublicHarness {
 
     private val privateDoc = publicDoc.copy(id = privateDocId.toString(), isPublic = false)
 
-    fun modules(appEnv: String = "dev"): PublicAppModules {
+    fun modules(
+        appEnv: String = "dev",
+        webStaticDir: String? = null,
+    ): PublicAppModules {
         val config = PublicServerConfig(
             host = "127.0.0.1",
             port = 8080,
             appEnv = appEnv,
             publicSiteBaseUrl = "https://cy.codes",
             analyticsSalt = "unit-test-salt",
+            webStaticDir = webStaticDir,
         )
         val portfolioRepo = object : PortfolioQueryRepository {
             override suspend fun getPortfolioOverview(): PortfolioOverviewDto {

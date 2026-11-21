@@ -52,6 +52,16 @@ class RootNavigationAndDeepLinkTest {
         assertEquals(RootConfig.Writeups("decompose-guide"), PortfolioDeepLink.fromPath("/writeups/decompose-guide#intro"))
         assertEquals(RootConfig.ResumeDocs, PortfolioDeepLink.fromPath("/resume"))
         assertEquals(RootConfig.Projects(initialSlug = null), PortfolioDeepLink.fromPath("/projects/INVALID_SLUG!"))
+        assertEquals(RootConfig.Profile, PortfolioDeepLink.fromPath("https://cy.codes"))
+        assertEquals(RootConfig.Profile, PortfolioDeepLink.fromPath("https://cy.codes/"))
+        assertEquals(
+            RootConfig.Writeups("decompose-guide"),
+            PortfolioDeepLink.fromPath("https://cy.codes/writeups/decompose-guide?ref=1#intro"),
+        )
+        assertEquals(
+            RootConfig.Projects("kmp-portfolio"),
+            PortfolioDeepLink.fromPath("http://127.0.0.1:8080/projects/kmp-portfolio"),
+        )
 
         assertEquals("/", PortfolioDeepLink.toPath(RootConfig.Profile))
         assertEquals("/projects/kmp-portfolio", PortfolioDeepLink.toPath(RootConfig.Projects("kmp-portfolio")))

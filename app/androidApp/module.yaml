@@ -1,8 +1,12 @@
 product: android/app
 
 dependencies:
+  - //core
+  - //app/presentation
   - //app/composeUi
   - $libs.androidx.activity.compose
+  - $libs.decompose
+  - $libs.decompose.extensions.compose
   - $compose.preview
   - $compose.uiTooling
 

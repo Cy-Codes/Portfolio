@@ -3,13 +3,13 @@ product:
   platforms: [ jvm, android, iosArm64, iosSimulatorArm64, wasmJs ]
 
 dependencies:
-  - //core
-  - $libs.decompose
+  - //core: exported
+  - $libs.decompose: exported
   - $libs.essenty.lifecycle.coroutines
-  - $libs.flowmvi.core
+  - $libs.flowmvi.core: exported
   - $libs.flowmvi.essenty
   - $libs.kotlinx.coroutines.core
-  - $libs.kotlinx.datetime
+  - $libs.kotlinx.datetime: exported
   - $libs.ktor.client.core
   - $libs.ktor.client.resources
   - $libs.ktor.client.content.negotiation

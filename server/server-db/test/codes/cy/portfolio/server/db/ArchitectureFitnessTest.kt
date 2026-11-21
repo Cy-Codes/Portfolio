@@ -38,6 +38,27 @@ class ArchitectureFitnessTest {
     }
 
     @Test
+    fun `composeUi module isolates Ktor server Exposed and admin packages across all KMP source sets`() {
+        val composeUiDirs = listOf(
+            "app/composeUi/src",
+            "app/composeUi/src@jvm",
+            "app/composeUi/src@android",
+            "app/composeUi/src@ios",
+            "app/composeUi/src@wasmJs",
+        ).filter { Files.isDirectory(repoRoot.resolve(it)) }
+
+        composeUiDirs.forEach { dir ->
+            scopeForRelativeDir(dir).files.assertFalse { file ->
+                file.hasImport { imp ->
+                    imp.name.startsWith("io.ktor.server.") ||
+                        imp.name.startsWith("org.jetbrains.exposed.") ||
+                        imp.name.startsWith("codes.cy.portfolio.server.admin.")
+                }
+            }
+        }
+    }
+
+    @Test
     fun `core module contains zero server, DB, or Compose imports`() {
         scopeForRelativeDir("core/src").files.assertFalse { file ->
             file.hasImport { imp ->
@@ -74,10 +95,11 @@ class ArchitectureFitnessTest {
     }
 
     @Test
-    fun `all data classes across core, presentation, and server modules declare immutable val properties only`() {
+    fun `all data classes across core, presentation, composeUi, and server modules declare immutable val properties only`() {
         listOf(
             "core/src",
             "app/presentation/src",
+            "app/composeUi/src",
             "server/server-public/src",
             "server/server-admin/src",
         ).forEach { dir ->

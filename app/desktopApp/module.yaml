@@ -1,9 +1,13 @@
 product: jvm/app
 
 dependencies:
+  - //core
+  - //app/presentation
   - //app/composeUi
   - $compose.desktop.currentOs
   - $compose.preview
+  - $libs.decompose
+  - $libs.decompose.extensions.compose
   - $libs.kotlinx.coroutines.swing
   - $libs.logback.classic
 

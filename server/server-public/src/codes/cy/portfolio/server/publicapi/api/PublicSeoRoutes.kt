@@ -39,6 +39,23 @@ import kotlinx.html.style
 import kotlinx.html.title
 import kotlinx.html.unsafe
 
+private val WASM_SHELL_STYLESHEET: String = """
+    html, body, #portfolio-root {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+""".trimIndent()
+
+private data class WasmShellAssets(
+    val importMapLoaderSrc: String? = null,
+    val scriptSrc: String? = null,
+    val isEsModule: Boolean = false,
+    val stylesheetHref: String? = null,
+)
+
 private val READER_VIEW_STYLESHEET: String = """
     :root { color-scheme: light dark; }
     body {
@@ -172,13 +189,7 @@ fun Route.registerPublicSeoRoutes(
     }
 
     val staticRoot = webStaticDir?.let(::File)?.takeIf { it.isDirectory }
-    val hasCompiledWasmBundle = staticRoot?.resolve("webApp.js")?.isFile == true ||
-        staticRoot?.resolve("composeApp.js")?.isFile == true
-    val wasmScriptName = when {
-        staticRoot?.resolve("webApp.js")?.isFile == true -> "/webApp.js"
-        staticRoot?.resolve("composeApp.js")?.isFile == true -> "/composeApp.js"
-        else -> null
-    }
+    val shellAssets = resolveWasmShellAssets(staticRoot)
 
     if (staticRoot != null) {
         staticFiles("/", staticRoot) {
@@ -198,26 +209,62 @@ fun Route.registerPublicSeoRoutes(
         get(spaRoute) {
             call.respondWasmShellHtml(
                 queryService = queryService,
-                wasmScriptSrc = if (hasCompiledWasmBundle) wasmScriptName else null,
+                shellAssets = shellAssets,
             )
         }
     }
 }
 
+private fun resolveWasmShellAssets(staticRoot: File?): WasmShellAssets {
+    if (staticRoot == null) return WasmShellAssets()
+    val importMapLoader = if (staticRoot.resolve("import-map-loader.js").isFile) "/import-map-loader.js" else null
+    val stylesheet = if (staticRoot.resolve("styles.css").isFile) "/styles.css" else null
+    return when {
+        staticRoot.resolve("webApp.mjs").isFile -> WasmShellAssets(
+            importMapLoaderSrc = importMapLoader,
+            scriptSrc = "/webApp.mjs",
+            isEsModule = true,
+            stylesheetHref = stylesheet,
+        )
+        staticRoot.resolve("webApp.js").isFile -> WasmShellAssets(
+            scriptSrc = "/webApp.js",
+            isEsModule = false,
+            stylesheetHref = stylesheet,
+        )
+        staticRoot.resolve("composeApp.js").isFile -> WasmShellAssets(
+            scriptSrc = "/composeApp.js",
+            isEsModule = false,
+            stylesheetHref = stylesheet,
+        )
+        else -> WasmShellAssets(stylesheetHref = stylesheet)
+    }
+}
+
 private suspend fun ApplicationCall.respondWasmShellHtml(
     queryService: PublicPortfolioQueryService,
-    wasmScriptSrc: String?,
+    shellAssets: WasmShellAssets,
 ) {
     val seoMeta = queryService.resolveSeoMetadata(request.path())
     respondHtml(HttpStatusCode.OK) {
         lang = "en"
         head {
             applySeoHead(seoMeta)
+            style { unsafe { +WASM_SHELL_STYLESHEET } }
+            shellAssets.stylesheetHref?.let { href ->
+                link(rel = "stylesheet", href = href)
+            }
         }
         body {
             div { id = "portfolio-root" }
-            wasmScriptSrc?.let { scriptUrl ->
-                script(src = scriptUrl) {}
+            shellAssets.importMapLoaderSrc?.let { loaderUrl ->
+                script(src = loaderUrl) {}
+            }
+            shellAssets.scriptSrc?.let { scriptUrl ->
+                script(src = scriptUrl) {
+                    if (shellAssets.isEsModule) {
+                        attributes["type"] = "module"
+                    }
+                }
             }
             noScript {
                 main {

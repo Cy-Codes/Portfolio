@@ -1,8 +1,13 @@
 product: wasm-js/app
 
 dependencies:
+  - //core
+  - //app/presentation
   - //app/composeUi
   - $compose.ui
+  - $libs.decompose
+  - $libs.decompose.extensions.compose
+  - $libs.kotlinx.browser
 
 settings:
   compose: enabled
