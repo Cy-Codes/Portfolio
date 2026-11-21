@@ -45,7 +45,6 @@ import codes.cy.portfolio.admin.ui.AdminProjectsScreen
 import codes.cy.portfolio.admin.ui.AdminSignInScreen
 import codes.cy.portfolio.admin.ui.AdminStatsScreen
 import codes.cy.portfolio.admin.ui.AdminWriteupsScreen
-import codes.cy.portfolio.ui.adaptive.AdaptiveLayoutSpec
 import codes.cy.portfolio.ui.adaptive.NavigationChrome
 import codes.cy.portfolio.ui.adaptive.rememberAdaptiveLayoutSpec
 import codes.cy.portfolio.ui.components.MetadataMonoTag

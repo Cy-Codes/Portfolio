@@ -38,7 +38,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import codes.cy.portfolio.presentation.navigation.RootComponent
 import codes.cy.portfolio.presentation.navigation.TopLevelDestination
-import codes.cy.portfolio.ui.adaptive.AdaptiveLayoutSpec
 import codes.cy.portfolio.ui.adaptive.NavigationChrome
 import codes.cy.portfolio.ui.adaptive.rememberAdaptiveLayoutSpec
 import codes.cy.portfolio.ui.components.MetadataMonoTag

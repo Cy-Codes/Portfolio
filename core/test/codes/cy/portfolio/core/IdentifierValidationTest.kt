@@ -10,7 +10,7 @@ import kotlin.test.assertTrue
 class IdentifierValidationTest {
     @Test
     fun `validates safe lowercase hyphenated slugs`() {
-        assertTrue("ktor-4b-architecture".isSafeSlug())
+        assertTrue("ktor-split-architecture".isSafeSlug())
         assertTrue("v1".isSafeSlug())
         assertFalse("".isSafeSlug())
         assertFalse("UpperCase".isSafeSlug())

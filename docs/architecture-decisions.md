@@ -1,6 +1,6 @@
 # Portfolio — Architecture Decision Records (ADR)
 
-This document records the core architectural decisions, trade-offs, guardrails, and authoritative references for the **Portfolio** platform. Every ADR maps directly to enforcement rules in [CODING_STANDARDS.md](../CODING_STANDARDS.md) and execution tasks in [PLAN.md](PLAN.md).
+This document records the core architectural decisions, trade-offs, guardrails, and authoritative references for the **Portfolio** platform. Every ADR maps directly to enforcement rules in [CODING_STANDARDS.md](../CODING_STANDARDS.md) and execution tasks in [01_PLAN.md](01_PLAN.md).
 
 ---
 
@@ -12,7 +12,7 @@ This document records the core architectural decisions, trade-offs, guardrails, 
 | [ADR 2](#adr-2-adaptive-ui-strategy-material-3-adaptive-dp-breakpoints-modality-and-custom-theme) | Public UI (Android, Desktop, `wasmJs`) | Material 3 Adaptive `dp` breakpoints (`Compact` / `Medium`–`Expanded` / `Large`+) + custom editorial theme on `wasmJs` | Accepted |
 | [ADR 3](#adr-3-native-swiftui-on-ios-with-embedded-compose-demo-islands) | iOS Client | Native SwiftUI (`TabView`, `NavigationSplitView`) + embedded `ComposeUIViewController` writeup demo islands | Accepted |
 | [ADR 4](#adr-4-presentation-and-navigation-decompose-and-flowmvi-in-compose-free-apppresentation) | Shared Presentation & Routing | Pure KMP `app/presentation` (zero Compose imports) using Decompose + FlowMVI | Accepted |
-| [ADR 5](#adr-5-compile-time-split-ktor-jvm-servers-4b-and-separate-admin-ui) | Backend & Admin Topology | 4B compile-time split (`server/server-db`, `server/server-public`, `server/server-admin`) on Ktor JVM + dedicated `app/adminShared` UI | Accepted |
+| [ADR 5](#adr-5-compile-time-split-public-and-admin-ktor-jvm-servers-and-separate-admin-ui) | Backend & Admin Topology | Compile-time split public/admin Ktor JVM servers (`server/server-db`, `server/server-public`, `server/server-admin`) + dedicated `app/adminShared` UI | Accepted |
 | [ADR 6](#adr-6-postgresql-16-exposed-10-dsl-only-one-shot-flyway-migrator-and-three-tier-roles) | Persistence & Schema Lifecycle | PostgreSQL 16 (`portfolio`, `analytics`), Exposed 1.0 DSL-only + HikariCP, one-shot Flyway migrator, 3 DB roles | Accepted |
 | [ADR 7](#adr-7-pure-kmp-sealed-apierror-contract) | Client-Server Error Contract | Pure KMP `@Serializable sealed interface ApiError` in `//core` | Accepted |
 | [ADR 8](#adr-8-stateless-pagination-pure-get-downloads-and-deferred-concurrency-tokens) | API Semantics & Concurrency | Immutable `QueryOptions`/`PagedResult<T>` (CWE-190 guards), read-only `GET`, deferred `ETag`/`If-Match` follow-up | Accepted |
@@ -111,7 +111,7 @@ Because iOS uses SwiftUI while Android, Desktop, and `wasmJs` use Compose Multip
 
 ---
 
-## ADR 5: Compile-Time Split Ktor JVM Servers (4B) and Separate Admin UI
+## ADR 5: Compile-Time Split Public and Admin Ktor JVM Servers and Separate Admin UI
 
 ### Status
 Accepted
@@ -121,7 +121,7 @@ Both the public portfolio and the admin CMS/analytics suite use Ktor and Postgre
 
 ### Decision
 - **Stay on Ktor JVM (Netty):** Enables first-class JetBrains Exposed 1.0, HikariCP, Flyway, `ktor-server-auth` OAuth/JWT, and S3/R2 SDKs—none of which have full parity on Kotlin/Native CIO.
-- **Adopt Topology 4B (Compile-Time Split in This Monorepo):**
+- **Adopt a Compile-Time Split Public and Admin Server Architecture (in This Monorepo):**
   - `server/server-db` (`jvm/lib`): shared Exposed 1.0 DSL schema, repositories, HikariCP, and `BlobStorage`.
   - `server/server-public` (`jvm/app`): public read APIs, `/read/{slug}`, SEO shell, analytics ingestion. Does **not** compile or package admin routes, OAuth handlers, or R2 write logic.
   - `server/server-admin` (`jvm/app`): protected CMS CRUD, R2 presigned uploads, and admin analytics, deployable privately behind [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/policies/access/) and [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/).
@@ -239,5 +239,5 @@ With Postgres 16 roles, Flyway migrations, MinIO/R2 object storage, and two dist
 - Martin Fowler — [The Practical Test Pyramid](https://martinfowler.com/articles/practical-test-pyramid.html).
 - Docker — [Using Profiles with Compose](https://docs.docker.com/compose/how-tos/profiles/) and [Multi-Stage Building Best Practices](https://docs.docker.com/build/building/best-practices/).
 - OWASP — [Docker Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html) and [Secrets Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html).
-- Konsist — [Documentation](https://lemonappdev.github.io/konsist/).
+- Konsist — [Documentation](https://docs.konsist.lemonappdev.com/).
 - The Twelve-Factor App — [12factor.net](https://12factor.net/).

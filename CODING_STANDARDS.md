@@ -2,7 +2,7 @@
 
 This document defines the authoritative coding standards, architectural boundaries, and verification rules across the **Portfolio** workspace (Kotlin Multiplatform, Compose Multiplatform, SwiftUI, Ktor JVM, Exposed 1.0, PostgreSQL 16, Flyway, Docker, and Bruno).
 
-The architectural rationale and trade-offs behind these rules are documented in [docs/architecture-decisions.md](docs/architecture-decisions.md), and the phased implementation roadmap is tracked in [docs/PLAN.md](docs/PLAN.md).
+The architectural rationale and trade-offs behind these rules are documented in [docs/architecture-decisions.md](docs/architecture-decisions.md), and the phased implementation roadmap is tracked in [docs/01_PLAN.md](docs/01_PLAN.md).
 
 ---
 
@@ -141,7 +141,7 @@ Rather than an external media-type envelope, all client-server error contracts i
 
 ### 9. Pure KMP Presentation (`//app/presentation` — Decompose + FlowMVI)
 
-- **Strict Compose-Free Boundary:** `//app/presentation` must contain **zero** `androidx.compose.*` or `org.jetbrains.compose.*` imports. Enforce this automatically with [Konsist](https://lemonappdev.github.io/konsist/) architecture tests.
+- **Strict Compose-Free Boundary:** `//app/presentation` must contain **zero** `androidx.compose.*` or `org.jetbrains.compose.*` imports. Enforce this automatically with [Konsist](https://docs.konsist.lemonappdev.com/) architecture tests.
 - **Navigation ([Decompose](https://arkivanov.github.io/Decompose/component/overview/)):**
   - Components own `ComponentContext`, `ChildStack`, and `ChildPanels` (for adaptive list-detail / supporting panes).
   - Navigation flows strictly parent-driven: child components emit sealed `Output` intents; the root/parent component mutates `StackNavigation` or `PanelsNavigation`.
@@ -172,9 +172,9 @@ Rather than an external media-type envelope, all client-server error contracts i
 
 ---
 
-## Part III: Ktor JVM Server Standards (4B Compile-Time Split)
+## Part III: Ktor JVM Server Standards (Compile-Time Public/Admin Split)
 
-### 11. 4B Module Isolation & Clean Architecture Layering
+### 11. Public/Admin Module Isolation & Clean Architecture Layering
 
 Keep the backend split at compile time across three server modules:
 - **`server/server-db` (`jvm/lib`):** Exposed 1.0 DSL tables, `ResultRow` mappers, repositories, HikariCP factory, `BlobStorage` abstraction (Cloudflare R2 / MinIO), Flyway runner helpers. **Never** imports Ktor routing or auth plugins.
@@ -261,7 +261,7 @@ Inside both `server/server-public` and `server/server-admin`, organize packages 
 
 Follow [The Practical Test Pyramid](https://martinfowler.com/articles/practical-test-pyramid.html):
 1. **Fast Unit & Component Tests:** Pure `//core` serialization/pagination/`ApiError` tests, FlowMVI store tests, and Ktor `testHost` route contract tests running in milliseconds with zero DB.
-2. **Architecture Fitness Tests ([Konsist](https://lemonappdev.github.io/konsist/)):** Automated verification that `//app/presentation` never imports Compose, `//core` has no server/UI imports, `server/server-public` never touches admin packages, and domain `data class`es declare no `var` properties.
+2. **Architecture Fitness Tests ([Konsist](https://docs.konsist.lemonappdev.com/)):** Automated verification that `//app/presentation` never imports Compose, `//core` has no server/UI imports, `server/server-public` never touches admin packages, and domain `data class`es declare no `var` properties.
 3. **Docker / Testcontainers Integration Tests:** Real PostgreSQL 16 + Flyway + MinIO container tests verifying Exposed 1.0 queries, FK/unique `409` mappings, role least-privilege enforcement, and R2 presign/confirm flows.
 4. **Bruno API Collection (`bruno/`):**
    - Organize chronologically: `00-Health`, `01-Public-Portfolio`, `02-Public-Writeups-And-SEO`, `03-Admin-CMS`, `04-Admin-Documents-And-Stats`, `05-Negative-Tests` (400 overflow, 401/403 auth, 404 missing slug/route, 409 duplicate slug/FK conflict).

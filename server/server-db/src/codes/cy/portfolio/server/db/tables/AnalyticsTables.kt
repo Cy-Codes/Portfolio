@@ -3,14 +3,14 @@ package codes.cy.portfolio.server.db.tables
 import codes.cy.portfolio.core.model.AnalyticsEventType
 import codes.cy.portfolio.core.model.ClientPlatform
 import codes.cy.portfolio.core.model.ViewportTier
+import java.time.LocalDate
+import java.time.OffsetDateTime
+import kotlin.uuid.Uuid
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.javatime.CurrentTimestampWithTimeZone
 import org.jetbrains.exposed.v1.javatime.date
 import org.jetbrains.exposed.v1.javatime.timestampWithTimeZone
-import java.time.LocalDate
-import java.time.OffsetDateTime
-import kotlin.uuid.Uuid
 
 private const val ENUM_COLUMN_LENGTH: Int = 32
 private const val VISITOR_HASH_LENGTH: Int = 64

@@ -4,6 +4,10 @@ import codes.cy.portfolio.presentation.features.profile.ProfileAction
 import codes.cy.portfolio.presentation.features.profile.ProfileIntent
 import codes.cy.portfolio.presentation.features.profile.ProfileState
 import codes.cy.portfolio.presentation.features.profile.ProfileStoreFactory.configureStore
+import codes.cy.portfolio.presentation.features.projects.ProjectsAction
+import codes.cy.portfolio.presentation.features.projects.ProjectsIntent
+import codes.cy.portfolio.presentation.features.projects.ProjectsState
+import codes.cy.portfolio.presentation.features.projects.ProjectsStoreFactory.configureStore
 import codes.cy.portfolio.presentation.features.readarticle.ReadArticleAction
 import codes.cy.portfolio.presentation.features.readarticle.ReadArticleIntent
 import codes.cy.portfolio.presentation.features.readarticle.ReadArticleState
@@ -13,10 +17,6 @@ import codes.cy.portfolio.presentation.features.resumedocs.ResumeDocsAction
 import codes.cy.portfolio.presentation.features.resumedocs.ResumeDocsIntent
 import codes.cy.portfolio.presentation.features.resumedocs.ResumeDocsState
 import codes.cy.portfolio.presentation.features.resumedocs.ResumeDocsStoreFactory.configureStore
-import codes.cy.portfolio.presentation.features.projects.ProjectsAction
-import codes.cy.portfolio.presentation.features.projects.ProjectsIntent
-import codes.cy.portfolio.presentation.features.projects.ProjectsState
-import codes.cy.portfolio.presentation.features.projects.ProjectsStoreFactory.configureStore
 import codes.cy.portfolio.presentation.features.writeups.WriteupsAction
 import codes.cy.portfolio.presentation.features.writeups.WriteupsIntent
 import codes.cy.portfolio.presentation.features.writeups.WriteupsState

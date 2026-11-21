@@ -1,6 +1,5 @@
 package codes.cy.portfolio.presentation
 
-import codes.cy.portfolio.core.error.ApiError
 import codes.cy.portfolio.core.model.ClientPlatform
 import codes.cy.portfolio.core.model.DocumentDto
 import codes.cy.portfolio.core.model.PortfolioOverviewDto

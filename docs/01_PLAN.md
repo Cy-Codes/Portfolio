@@ -8,7 +8,7 @@
 
 | Phase | Scope | Status | Key Verification Gate | Completed Date |
 | :--- | :--- | :--- | :--- | :--- |
-| **Phase 1** | Tooling, Standards, Docker, 4B Module Scaffold, `//core` & `//server/server-db` | Done | `compose.yaml` (`deps`) healthy, Flyway + `01_schema_structure_tests.sql` pass, `./kotlin build` passes | 2026-11-20 |
+| **Phase 1** | Tooling, Standards, Docker, Split Public/Admin Module Scaffold, `//core` & `//server/server-db` | Done | `compose.yaml` (`deps`) healthy, Flyway + `01_schema_structure_tests.sql` pass, `./kotlin build` passes | 2026-11-20 |
 | **Phase 2** | Ktor `server/server-public` & `server/server-admin`, Dockerfiles, Testcontainers, Konsist, Bruno | Done | `./kotlin test`, Konsist boundaries, Testcontainers Postgres/MinIO tests, `./scripts/smoke.sh local --bruno` pass | 2026-11-20 |
 | **Phase 3** | Pure KMP Presentation Layer (`//app/presentation` — Decompose + FlowMVI) | Done | FlowMVI store unit tests + Konsist compose-free guard pass across all KMP targets | 2026-11-20 |
 | **Phase 4** | Public Compose UI (`//app/composeUi`, Android, Desktop, `wasmJs`) | Done | Adaptive resize checks (`Compact`/`Medium`/`Expanded`/`Large`/`Extra-Large`), `Highlights` + `DemoRegistry`, `wasmJs` URL history verified | 2026-11-21 |
@@ -25,7 +25,7 @@
 | **Adaptive Public UI** | Option A — Material 3 Adaptive (`dp` breakpoints + modality + custom theme) on `wasmJs`, Android, Desktop | [ADR 2](architecture-decisions.md#adr-2-adaptive-ui-strategy-material-3-adaptive-dp-breakpoints-modality-and-custom-theme) |
 | **iOS UI** | Native SwiftUI (`TabView`, `NavigationSplitView`) + occasional `ComposeUIViewController` demo islands | [ADR 3](architecture-decisions.md#adr-3-native-swiftui-on-ios-with-embedded-compose-demo-islands) |
 | **Presentation & Routing** | Decompose (`ChildStack`, `ChildPanels`, `WebHistoryController`) + FlowMVI in Compose-free `app/presentation` | [ADR 4](architecture-decisions.md#adr-4-presentation-and-navigation-decompose-and-flowmvi-in-compose-free-apppresentation) |
-| **Server & Admin Topology** | Topology 4B (Ktor JVM: `server/server-db`, `server/server-public`, `server/server-admin`) + separate `app/adminShared` UI | [ADR 5](architecture-decisions.md#adr-5-compile-time-split-ktor-jvm-servers-4b-and-separate-admin-ui) |
+| **Server & Admin Topology** | Compile-time split public/admin Ktor JVM servers (`server/server-db`, `server/server-public`, `server/server-admin`) + separate `app/adminShared` UI | [ADR 5](architecture-decisions.md#adr-5-compile-time-split-public-and-admin-ktor-jvm-servers-and-separate-admin-ui) |
 | **Database & Persistence** | PostgreSQL 16 (`portfolio`, `analytics`), Exposed 1.0 DSL-only + HikariCP, one-shot Flyway migrator, 3 DB roles | [ADR 6](architecture-decisions.md#adr-6-postgresql-16-exposed-10-dsl-only-one-shot-flyway-migrator-and-three-tier-roles) |
 | **Error Contract** | Pure KMP `@Serializable sealed interface ApiError` in `//core` | [ADR 7](architecture-decisions.md#adr-7-pure-kmp-sealed-apierror-contract) |
 | **Pagination & CQS** | `QueryOptions`/`PagedResult<T>` (CWE-190 guards), read-only `GET` downloads, deferred `ETag`/`If-Match` | [ADR 8](architecture-decisions.md#adr-8-stateless-pagination-pure-get-downloads-and-deferred-concurrency-tokens) |
@@ -53,7 +53,7 @@ flowchart LR
         Access["Cloudflare Access + OAuth Allowlist"]
     end
 
-    subgraph Services["Ktor JVM Services (4B Split) & Migrator"]
+    subgraph Services["Split Public/Admin Ktor JVM Services & Migrator"]
         PubSrv["server/server-public - Read API, /read/{slug}, SEO Shell"]
         AdmSrv["server/server-admin - CMS CRUD, R2 Presign, Stats"]
         Migrator["db-migrator (One-Shot) - Flyway + Advisory Lock"]
@@ -351,7 +351,7 @@ erDiagram
 - [x] Add `.editorconfig`, `.githooks/pre-commit`, `.githooks/install-hooks.sh`, and `.env.example` (with `.env` ignored in `.gitignore`).
 - [x] Create `compose.yaml` with profiles (`deps`: PostgreSQL 16 + one-shot `db-migrator` + MinIO; `local`: full stack with `server/server-public` & `server/server-admin`; `test`: ephemeral suite) and `127.0.0.1` port bindings.
 - [x] Create `scripts/lib.sh`, `scripts/up.sh`, `scripts/down.sh`, `scripts/dev-token.sh`, and `scripts/smoke.sh` (`set -euo pipefail`, `readonly`, `shfmt -i 4`).
-- [x] Restructure `project.yaml` and `libs.versions.toml` for the 4B topology (`core`, `app/presentation`, `app/composeUi`, `app/androidApp`, `app/desktopApp`, `app/webApp`, `app/iosApp`, `app/adminShared`, `app/adminDesktopApp`, `app/adminWebApp`, `server/server-db`, `server/server-public`, `server/server-admin`).
+- [x] Restructure `project.yaml` and `libs.versions.toml` for the split public/admin server topology (`core`, `app/presentation`, `app/composeUi`, `app/androidApp`, `app/desktopApp`, `app/webApp`, `app/iosApp`, `app/adminShared`, `app/adminDesktopApp`, `app/adminWebApp`, `server/server-db`, `server/server-public`, `server/server-admin`).
 - [x] Implement `//core`: immutable `@Serializable` DTOs, Ktor `@Resource` contracts, `QueryOptions` & `PagedResult<T>` (with overflow bounds), `ApiError` sealed hierarchy, `PortfolioJson`, and unit tests.
 - [x] Implement `//server/server-db`: Flyway `migrations/V1__init_schemas_roles_and_tables.sql` (`portfolio`, `analytics`, 3 DB roles, FK indexes, `TIMESTAMPTZ`, `tsvector` GIN index), `R__portfolio_read_views.sql`, `scripts/01_seed_dev_data.sql` (`generate_series`), `tests/01_schema_structure_tests.sql`, HikariCP factory, Exposed 1.0 DSL repositories, and `BlobStorage` (R2/MinIO).
 - [x] Verify Phase 1 gates: `compose.yaml` (`deps`) healthy (`pgsty/minio` + `pgsty/mc`), Flyway + seed + `01_schema_structure_tests.sql` pass, `./kotlin build` (394/394 tasks) and `./kotlin test` (47 passed) succeed.

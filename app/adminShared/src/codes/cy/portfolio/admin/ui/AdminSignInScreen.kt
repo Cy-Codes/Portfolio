@@ -90,7 +90,7 @@ fun AdminSignInScreen(
                             style = MaterialTheme.typography.headlineSmall,
                         )
                         Text(
-                            text = "Protected Topology 4B CMS & R2 Control Plane",
+                            text = "Protected Admin CMS & R2 Control Plane",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

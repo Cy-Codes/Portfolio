@@ -2,7 +2,6 @@ package codes.cy.portfolio.server.admin
 
 import codes.cy.portfolio.core.error.ApiError
 import codes.cy.portfolio.core.model.AdminSessionDto
-import codes.cy.portfolio.core.model.AnalyticsEventType
 import codes.cy.portfolio.core.model.CertificationDto
 import codes.cy.portfolio.core.model.ConfirmUploadRequest
 import codes.cy.portfolio.core.model.DocumentCategory
@@ -14,7 +13,6 @@ import codes.cy.portfolio.core.model.PresignUploadRequest
 import codes.cy.portfolio.core.model.PresignUploadResponse
 import codes.cy.portfolio.core.model.ProfileDto
 import codes.cy.portfolio.core.model.ProjectDetailDto
-import codes.cy.portfolio.core.model.ProjectStatus
 import codes.cy.portfolio.core.model.ProjectSummaryDto
 import codes.cy.portfolio.core.model.SkillDto
 import codes.cy.portfolio.core.model.StatsOverviewDto
@@ -79,7 +77,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
-import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlin.uuid.Uuid

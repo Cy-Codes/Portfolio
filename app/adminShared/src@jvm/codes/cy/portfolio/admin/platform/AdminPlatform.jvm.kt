@@ -7,10 +7,10 @@ import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
 import javax.swing.SwingUtilities
+import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.resume
 
 private val ALLOWED_EXTENSIONS: Set<String> = setOf("pdf", "png", "jpg", "jpeg", "webp", "md", "markdown", "txt")
 

@@ -9,7 +9,7 @@ the [Kotlin Toolchain](https://kotlin-toolchain.org/dev/).
 - [/app/webApp](./app/webApp) contains the public web application, compiled to WebAssembly with Kotlin/Wasm (`wasmJs`).
 - [/app/adminShared](./app/adminShared), [/app/adminDesktopApp](./app/adminDesktopApp), and [/app/adminWebApp](./app/adminWebApp) contain the dedicated Admin CMS and analytics UI.
 - [/core](./core) holds shared `@Serializable` DTOs, Ktor `@Resource` contracts, `ApiError`, `QueryOptions`, and `PortfolioJson`.
-- [/server/server-db](./server/server-db), [/server/server-public](./server/server-public), and [/server/server-admin](./server/server-admin) contain the 4B compile-time split Ktor JVM backend and PostgreSQL/Flyway data layer.
+- [/server/server-db](./server/server-db), [/server/server-public](./server/server-public), and [/server/server-admin](./server/server-admin) contain the compile-time split public/admin Ktor JVM backend and PostgreSQL/Flyway data layer.
 
 The `kotlin` (macOS/Linux) and `kotlin.bat` (Windows) scripts in the project root are self-bootstrapping wrappers for
 the Kotlin Toolchain: they download the pinned toolchain version on first use, so no separate installation is required.
@@ -38,8 +38,9 @@ Run the project's tests with `./kotlin test`, or `./kotlin test -m <module>` for
 ### Documentation & Architecture
 
 - [Coding Standards](./CODING_STANDARDS.md) — Universal pillars, Kotlin/KMP/SwiftUI/Ktor/PostgreSQL rules, Docker, and Bruno standards.
-- [Master Architecture Plan & Phase Tracker](./docs/PLAN.md) — Living phased roadmap (`Phase 1`–`Phase 6`), API contracts, ERD, and sequence diagrams.
+- [Master Architecture Plan & Phase Tracker](docs/01_PLAN.md) — Living phased roadmap (`Phase 1`–`Phase 6`), API contracts, ERD, and sequence diagrams.
 - [Architecture Decision Records (ADRs)](./docs/architecture-decisions.md) — Recorded rationale and trade-offs (`ADR 1`–`ADR 10`).
+- [Reusable Libraries & Template Extraction Plan](docs/LIBS_PLAN.md) — Reusable KMP/Ktor/SwiftUI libraries vs. full-stack starter template blueprint.
 
 ### Target Architecture Overview
 
@@ -63,7 +64,7 @@ flowchart LR
         Access["Cloudflare Access + OAuth"]
     end
 
-    subgraph Backend["4B Split Ktor JVM Services + Migrator"]
+    subgraph Backend["Split Public/Admin Ktor JVM Services + Migrator"]
         PubSrv["server/server-public (RO DB Role, SEO, /read/{slug})"]
         AdmSrv["server/server-admin (RW DML Role, R2 Presign, Stats)"]
         Migrator["db-migrator (One-Shot Flyway DDL)"]

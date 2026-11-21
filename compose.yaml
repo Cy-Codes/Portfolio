@@ -2,7 +2,7 @@
 # Portfolio Local Infrastructure & Emulation Stack
 # Profiles:
 #   deps  - PostgreSQL 16 + One-Shot Flyway Migrator + MinIO (R2 local emulator)
-#   local - Full local runtime dependencies + containerized Ktor servers (4B)
+#   local - Full local runtime dependencies + containerized public and admin Ktor servers
 #   test  - Ephemeral verification dependencies
 # ============================================================================
 

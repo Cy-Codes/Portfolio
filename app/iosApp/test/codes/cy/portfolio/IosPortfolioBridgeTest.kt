@@ -2,11 +2,9 @@ package codes.cy.portfolio
 
 import codes.cy.portfolio.core.error.ApiError
 import codes.cy.portfolio.core.model.ClientPlatform
-import codes.cy.portfolio.core.model.DocumentCategory
 import codes.cy.portfolio.core.model.DocumentDto
 import codes.cy.portfolio.core.model.PortfolioOverviewDto
 import codes.cy.portfolio.core.model.ProjectDetailDto
-import codes.cy.portfolio.core.model.ProjectStatus
 import codes.cy.portfolio.core.model.ProjectSummaryDto
 import codes.cy.portfolio.core.model.TrackEventRequest
 import codes.cy.portfolio.core.model.ViewportTier
@@ -21,15 +19,11 @@ import codes.cy.portfolio.presentation.data.PublicPortfolioApi
 import codes.cy.portfolio.presentation.navigation.PresentationDependencies
 import codes.cy.portfolio.presentation.navigation.RootComponent
 import codes.cy.portfolio.presentation.navigation.TopLevelDestination
-import codes.cy.portfolio.ui.markdown.MarkdownSegment
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertIs
-import kotlin.test.assertTrue
 import kotlin.time.Instant
 import kotlinx.coroutines.Dispatchers
-import kotlinx.datetime.LocalDate
 
 class IosPortfolioBridgeTest {
 
