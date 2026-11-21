@@ -52,7 +52,11 @@ class PublicApi {
     }
 
     @Resource("documents")
-    class Documents(val parent: PublicApi = PublicApi()) {
+    class Documents(
+        val parent: PublicApi = PublicApi(),
+        val page: Int = QueryOptions.DEFAULT_PAGE,
+        val pageSize: Int = QueryOptions.DEFAULT_PAGE_SIZE,
+    ) {
         @Resource("{id}/download")
         class Download(
             val parent: Documents = Documents(),

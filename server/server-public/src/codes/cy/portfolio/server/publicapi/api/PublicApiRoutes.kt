@@ -90,6 +90,11 @@ fun Route.registerPublicApiRoutes(
         call.respond(HttpStatusCode.OK, queryService.getWriteupBySlug(route.slug))
     }
 
+    get<PublicApi.Documents> { route ->
+        val options = route.toValidatedQueryOptions()
+        call.respond(HttpStatusCode.OK, queryService.getPublicDocuments(options))
+    }
+
     get<PublicApi.Documents.Download> { route ->
         val resolved = queryService.resolvePublicDocumentDownload(route.id)
         val safeFilename = resolved.document.originalFilename.replace("\"", "_")

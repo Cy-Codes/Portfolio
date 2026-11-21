@@ -80,6 +80,11 @@ class PublicPortfolioQueryService(
             ?: throw NotFoundException(resource = "writeup", identifier = cleanSlug)
     }
 
+    suspend fun getPublicDocuments(options: QueryOptions): PagedResult<DocumentDto> {
+        ensureValidOffset(options)
+        return documentRepo.getDocuments(options = options, publicOnly = true)
+    }
+
     /**
      * Pure read-only download resolver performing zero database writes.
      */

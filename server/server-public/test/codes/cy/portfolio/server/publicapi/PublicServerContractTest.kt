@@ -127,6 +127,15 @@ class PublicServerContractTest {
         val noRedirectClient = createClient { followRedirects = false }
         val jsonClient = createClient { install(ContentNegotiation) { json(PortfolioJson) } }
 
+        val docsResp = jsonClient.get("/api/v1/public/documents")
+        assertEquals(HttpStatusCode.OK, docsResp.status)
+        val docsPage = docsResp.body<PagedResult<DocumentDto>>()
+        assertEquals(1, docsPage.items.size)
+        assertTrue(docsPage.items.all { it.isPublic })
+
+        val docsOverflowResp = jsonClient.get("/api/v1/public/documents?page=21474838&pageSize=100")
+        assertEquals(HttpStatusCode.BadRequest, docsOverflowResp.status)
+
         val downloadResp = noRedirectClient.get("/api/v1/public/documents/${harness.publicDocId}/download")
         assertEquals(HttpStatusCode.Found, downloadResp.status)
         assertEquals("nosniff", downloadResp.headers["X-Content-Type-Options"])

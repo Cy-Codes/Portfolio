@@ -10,7 +10,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **Phase 1** | Tooling, Standards, Docker, 4B Module Scaffold, `//core` & `//server/server-db` | Done | `compose.yaml` (`deps`) healthy, Flyway + `01_schema_structure_tests.sql` pass, `./kotlin build` passes | 2026-11-20 |
 | **Phase 2** | Ktor `server/server-public` & `server/server-admin`, Dockerfiles, Testcontainers, Konsist, Bruno | Done | `./kotlin test`, Konsist boundaries, Testcontainers Postgres/MinIO tests, `./scripts/smoke.sh local --bruno` pass | 2026-11-20 |
-| **Phase 3** | Pure KMP Presentation Layer (`//app/presentation` — Decompose + FlowMVI) | Not Started | FlowMVI store unit tests + Konsist compose-free guard pass across all KMP targets | — |
+| **Phase 3** | Pure KMP Presentation Layer (`//app/presentation` — Decompose + FlowMVI) | Done | FlowMVI store unit tests + Konsist compose-free guard pass across all KMP targets | 2026-11-20 |
 | **Phase 4** | Public Compose UI (`//app/composeUi`, Android, Desktop, `wasmJs`) | Not Started | Adaptive resize checks (`Compact`/`Medium`/`Expanded`/`Large`/`Extra-Large`), `Highlights` + `DemoRegistry`, `wasmJs` URL history verified | — |
 | **Phase 5** | Native SwiftUI iOS (`//app/iosApp`) + Embedded Compose Demo Islands | Not Started | Xcode iOS build + SwiftUI `TabView`/`NavigationSplitView` + inline `ComposeUIViewController` demo verified | — |
 | **Phase 6** | Admin Compose UI (`//app/adminShared`, `//app/adminDesktopApp`, `//app/adminWebApp`) + Full E2E Smoke | Not Started | Admin stats, CMS CRUD, live Markdown/demo preview, R2 presigned upload, full `./scripts/smoke.sh local --bruno` pass | — |
@@ -365,11 +365,11 @@ erDiagram
 - [x] Verify Phase 2 gates: `./kotlin test`, Konsist tests, Docker integration tests, and `./scripts/smoke.sh local --bruno` pass.
 
 ### Phase 3 — Pure KMP Presentation Layer (`//app/presentation`)
-- [ ] Configure `//app/presentation/module.yaml` with zero Compose dependencies.
-- [ ] Implement Ktor Client API services using `//core` `@Resource` routes, `PortfolioJson`, and exhaustive `ApiError` decoding.
-- [ ] Implement Decompose root/child components (`ChildStack` + `ChildPanels` adaptive scenes + deep-link route models for `WebHistoryController`).
-- [ ] Implement FlowMVI stores + Essenty integration (`ProfileStore`, `ProjectsStore`, `WriteupsStore`, `ReadArticleStore`, `ResumeDocsStore`) plus analytics/error/logging plugins.
-- [ ] Verify Phase 3 gates: FlowMVI unit tests and Konsist rule (`app/presentation` imports zero Compose symbols) pass.
+- [x] Configure `//app/presentation/module.yaml` with zero Compose dependencies.
+- [x] Implement Ktor Client API services using `//core` `@Resource` routes, `PortfolioJson`, and exhaustive `ApiError` decoding.
+- [x] Implement Decompose root/child components (`ChildStack` + `ChildPanels` adaptive scenes + deep-link route models for `WebHistoryController`).
+- [x] Implement FlowMVI stores + Essenty integration (`ProfileStore`, `ProjectsStore`, `WriteupsStore`, `ReadArticleStore`, `ResumeDocsStore`) plus analytics/error/logging plugins.
+- [x] Verify Phase 3 gates: FlowMVI unit tests and Konsist rule (`app/presentation` imports zero Compose symbols) pass.
 
 ### Phase 4 — Public Compose UI (`//app/composeUi`, Android, Desktop, `wasmJs`)
 - [ ] Build custom editorial portfolio design system over Material 3 Adaptive (`currentWindowAdaptiveInfo(supportLargeAndXLargeWidth = true)` across `Compact`, `Medium`, `Expanded`, `Large`, `Extra-Large` + input-modality polish).

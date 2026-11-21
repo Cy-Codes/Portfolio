@@ -27,6 +27,15 @@ fun PublicApi.Writeups.toValidatedQueryOptions(): QueryOptions =
         allowedSortFields = ExposedWriteupRepository.ALLOWED_SORT_FIELDS,
     )
 
+fun PublicApi.Documents.toValidatedQueryOptions(): QueryOptions =
+    buildValidatedQueryOptions(
+        page = page,
+        pageSize = pageSize,
+        sortBy = null,
+        sortDirection = SortDirection.DESC.wireValue,
+        allowedSortFields = emptySet(),
+    )
+
 private fun buildValidatedQueryOptions(
     page: Int,
     pageSize: Int,

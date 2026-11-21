@@ -16,10 +16,23 @@ class ArchitectureFitnessTest {
         Konsist.scopeFromExternalDirectory(repoRoot.resolve(relativeDir).toString())
 
     @Test
-    fun `presentation module contains zero Compose imports`() {
-        scopeForRelativeDir("app/presentation/src").files.assertFalse { file ->
-            file.hasImport { imp ->
-                imp.name.startsWith("androidx.compose.") || imp.name.startsWith("org.jetbrains.compose.")
+    fun `presentation module contains zero Compose, server, or Exposed imports across all KMP source sets`() {
+        val presentationDirs = listOf(
+            "app/presentation/src",
+            "app/presentation/src@jvm",
+            "app/presentation/src@android",
+            "app/presentation/src@ios",
+            "app/presentation/src@wasmJs",
+        ).filter { Files.isDirectory(repoRoot.resolve(it)) }
+
+        presentationDirs.forEach { dir ->
+            scopeForRelativeDir(dir).files.assertFalse { file ->
+                file.hasImport { imp ->
+                    imp.name.startsWith("androidx.compose.") ||
+                        imp.name.startsWith("org.jetbrains.compose.") ||
+                        imp.name.startsWith("io.ktor.server.") ||
+                        imp.name.startsWith("org.jetbrains.exposed.")
+                }
             }
         }
     }
@@ -61,8 +74,13 @@ class ArchitectureFitnessTest {
     }
 
     @Test
-    fun `all data classes across core and server modules declare immutable val properties only`() {
-        listOf("core/src", "server/server-public/src", "server/server-admin/src").forEach { dir ->
+    fun `all data classes across core, presentation, and server modules declare immutable val properties only`() {
+        listOf(
+            "core/src",
+            "app/presentation/src",
+            "server/server-public/src",
+            "server/server-admin/src",
+        ).forEach { dir ->
             scopeForRelativeDir(dir)
                 .classes()
                 .filter { it.hasModifier(KoModifier.DATA) }
