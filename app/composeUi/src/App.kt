@@ -12,6 +12,7 @@ import codes.cy.portfolio.core.model.ExperienceDto
 import codes.cy.portfolio.core.model.PortfolioOverviewDto
 import codes.cy.portfolio.core.model.ProfileDto
 import codes.cy.portfolio.core.model.ProjectDetailDto
+import codes.cy.portfolio.core.model.ProjectStatus
 import codes.cy.portfolio.core.model.ProjectSummaryDto
 import codes.cy.portfolio.core.model.SkillDto
 import codes.cy.portfolio.core.model.SocialLinkDto

@@ -272,9 +272,9 @@ Follow [The Practical Test Pyramid](https://martinfowler.com/articles/practical-
 - **Bash Standards (`scripts/`):**
   - Begin executable scripts with `#!/usr/bin/env bash` and `set -euo pipefail`.
   - `source` shared helpers from `scripts/lib.sh` (`# shellcheck source=lib.sh`), validate inputs up front, check prerequisites via `require_command`, quote all expansions (`"${var}"`), use `local` inside functions, declare constants `readonly`, indent 4 spaces (`shfmt -i 4`), and keep scripts idempotent (`up.sh`, `down.sh`, `smoke.sh`, `dev-token.sh`).
-- **Formatting & `.githooks/pre-commit`:**
+- **Formatting & Pre-Commit Governance:**
   - `.editorconfig` enforces 4-space indentation, UTF-8, LF endings, trimmed trailing whitespace, and final newline across `.kt`, `.kts`, `.sql`, `.sh`, `.yml`, `.yaml`.
-  - Pre-commit hook automatically formats staged Kotlin/Bash files, removes unused Kotlin imports, checks `bash -n`, re-stages modified files, and **blocks edits to already-committed `migrations/V*.sql` files**.
+  - Automated pre-commit hooks are currently removed pending a clean rebuild with AST-safe tooling; merged `migrations/V*.sql` files remain strictly immutable.
 
 ---
 

@@ -1,10 +1,15 @@
 package codes.cy.portfolio.ui
 
 import codes.cy.portfolio.ui.demos.DemoRegistry
+import codes.cy.portfolio.ui.markdown.MarkdownSegment
+import codes.cy.portfolio.ui.markdown.MarkdownSegmentParser
 import codes.cy.portfolio.ui.platform.formatByteSize
 import codes.cy.portfolio.ui.platform.formatMonthYear
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlinx.datetime.LocalDate
 
 class MarkdownSegmentParserAndDemoRegistryTest {
