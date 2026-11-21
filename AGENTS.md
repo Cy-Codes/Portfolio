@@ -47,4 +47,4 @@
 - Full language & infrastructure rules: `CODING_STANDARDS.md`
 - Architecture trade-offs (`ADR 1`–`ADR 10`): `docs/architecture-decisions.md`
 - Phased roadmap & API/ERD contracts: `docs/01_PLAN.md`
-- On-demand workspace runbooks in `.agents/skills/`: `verify-change`, `db-migration`, `add-api-endpoint`, `web-verify`, `release-preflight`
+- On-demand workspace runbooks in `.agents/skills/`: `coding-standards`, `verify-change`, `db-migration`, `add-api-endpoint`, `web-verify`, `release-preflight`
