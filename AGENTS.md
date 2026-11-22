@@ -36,7 +36,10 @@
 1. **Functional & Immutable:** Prefer `.map`/`.filter`/`.fold`/`.associate` and set-based SQL over mutable-accumulator loops. Domain models, DTOs, `QueryOptions`, `PagedResult<T>`, and FlowMVI `State`/`Intent`/`Action` must use `data class`/`sealed interface` with `val` properties and read-only `List`/`Map`/`Set`.
 2. **CQS & Zero Magic Numbers:** Keep `GET` handlers 100% read-only (record analytics via `POST /api/v1/public/events`). Use `HttpStatusCode.*`, `QueryOptions.*`, enums, and `const val` / `readonly`.
 3. **Immutable Migrations:** Committed `server/server-db/resources/db/migrations/V*.sql` files are strictly immutable—always append `V<n+1>__<snake_case>.sql`.
-4. **Config & Secrets Hygiene:** Keep `.env.example` synchronized whenever env vars change in `*ServerConfig.kt` or `DatabaseConfig.kt`. Never create, edit, or commit real `.env` files or secrets.
+4. **Config, Secrets & Public-Repo IaC Hygiene:**
+   - Keep `.env.example` and `infra/terraform/terraform.tfvars.example` synchronized whenever env vars or Terraform variables change.
+   - Never create, edit, or commit real `.env` files, real `*.tfvars`, `*.tfstate*`, service account JSON keys, or plaintext secrets.
+   - In `infra/terraform/`: create `google_secret_manager_secret` containers only (populate `secret_version` values out-of-band), parameterize all environment/prod identifiers (`project_id`, admin emails, state bucket), use additive `*_iam_member` bindings only (never `*_iam_policy`/`*_iam_binding`), and restrict CI Workload Identity Federation `attribute_condition` to the owning repo's `main` branch (never forked PRs).
 5. **Verification & Honesty (Anti-Checkbox Theater):**
    - Never report a build or test as passing unless run **after** your final edit with observed output; state exact scope and exclusions.
    - Never check `[x]` in `docs/01_PLAN.md` for stubs, unimplemented flows, or unused config.
@@ -45,6 +48,6 @@
 ## Deeper References (Read Only When Relevant)
 
 - Full language & infrastructure rules: `CODING_STANDARDS.md`
-- Architecture trade-offs (`ADR 1`–`ADR 10`): `docs/architecture-decisions.md`
+- Architecture trade-offs (v1 `ADR 1`–`ADR 10`, v2 GCP/Terraform/CircleCI `ADR 11`–`ADR 14`): `docs/architecture-decisions.md` · `docs/architecture-decisions-v2.md`
 - Phased roadmap & API/ERD contracts: `docs/01_PLAN.md`
 - On-demand workspace runbooks in `.agents/skills/`: `coding-standards`, `verify-change`, `db-migration`, `add-api-endpoint`, `web-verify`, `release-preflight`

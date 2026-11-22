@@ -14,6 +14,25 @@ local.properties
 *.keystore
 *.secret.bru
 bruno/environments/*.local.bru
+*service-account*.json
+*credentials*.json
+
+# --- Terraform / IaC (Public Repository Guardrails) ---
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+*.tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
 
 # --- Kotlin Toolchain (Amper), Gradle, JVM & Build Outputs ---
 build/

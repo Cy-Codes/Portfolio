@@ -276,6 +276,18 @@ Follow [The Practical Test Pyramid](https://martinfowler.com/articles/practical-
   - `.editorconfig` enforces 4-space indentation, UTF-8, LF endings, trimmed trailing whitespace, and final newline across `.kt`, `.kts`, `.sql`, `.sh`, `.yml`, `.yaml`.
   - Automated pre-commit hooks are currently removed pending a clean rebuild with AST-safe tooling; merged `migrations/V*.sql` files remain strictly immutable.
 
+### 19. Infrastructure as Code (Terraform & Public-Repo Guardrails)
+
+Because this repository is **public**, `infra/terraform/` must maintain a strict boundary between **infrastructure definitions** (public) and **state, secrets, and production identifiers** (private):
+
+- **Remote State Only:** Store Terraform state in a dedicated, versioned GCS bucket (`backend "gcs"`) with Public Access Prevention enabled. Pass backend bucket names via `-backend-config` (never hardcode prod state bucket names in `.tf` files). Keep `*.tfstate*` and `.terraform/` git-ignored.
+- **Secret Shells Only:** Declare `google_secret_manager_secret` containers and IAM accessors in Terraform, but **never** commit `google_secret_manager_secret_version` values in `.tf` or `.tfvars`. Populate secret values out-of-band via `gcloud secrets versions add` or GCP Console, and inject them into Cloud Run as standard environment variables.
+- **Parameterize All Prod Identifiers:** Never hardcode GCP Project IDs, Project Numbers, Billing Account IDs, personal admin emails (`ADMIN_ALLOWED_SUBJECTS`), or custom domains in `.tf` files. Declare them as `variable`s, document placeholders in `terraform.tfvars.example`, keep real `*.tfvars` git-ignored, and supply production values via CI `TF_VAR_*` environment variables.
+- **Least-Privilege Additive IAM:** Always use `*_iam_member` resources (additive). Never use authoritative `*_iam_policy` or `*_iam_binding` resources that can wipe Google-managed service agent permissions.
+- **Private Database by Default:** Provision Cloud SQL with `ipv4_enabled = false` (private VPC IP only) and SSL enforced (`ENCRYPTED_ONLY`), accessed from Cloud Run via Direct VPC Egress.
+- **Lock Down CI OIDC Against Forked PRs:** Restrict GCP Workload Identity Federation `attribute_condition` strictly to the owning repository's `main` branch so pull requests from public forks cannot assume deploy roles or read secrets.
+- **Format & Validate:** Run `terraform fmt -check -recursive` and `terraform validate` before committing any IaC change.
+
 ---
 
 ## Part VI: Anti-Pattern & Remedy Catalog
@@ -292,5 +304,6 @@ Follow [The Practical Test Pyramid](https://martinfowler.com/articles/practical-
 | Reflection JSON serializers or `encodeDefaults = false` | Strips `is*` boolean prefixes; inconsistent JSON payloads | Frozen `kotlinx.serialization` (`encodeDefaults = true`) |
 | Exposing raw `500` exception details in production | Leaks DB strings, hostnames, and stack traces | Pure `Throwable.toApiError(isDev)` masking `500` details with `traceId` |
 | Unbounded page sizes or unchecked `(page - 1) * pageSize` | Memory exhaustion / 32-bit integer overflow (CWE-190) | Clamp `pageSize <= 100`; check overflow before cast (`400`) |
-| Storing uploaded PDFs/images in Postgres `BYTEA` | Table/WAL bloat, slow backups, Ktor heap spikes | Direct presigned PUTs to Cloudflare R2 (MinIO locally) |
-| Deploying `:latest` tags or baking secrets into images/YAML | Non-deterministic rollouts and credential exposure | Immutable content-hash tags, `.env.example`, secret stores |
+| Storing uploaded PDFs/images in Postgres `BYTEA` | Table/WAL bloat, slow backups, Ktor heap spikes | Direct presigned PUTs to GCS (MinIO/emulator locally) behind `BlobStorage` |
+| Deploying `:latest` tags or baking secrets into images/YAML | Non-deterministic rollouts and credential exposure | Immutable content-hash tags, `.env.example`, GCP Secret Manager |
+| Committing `*.tfstate*`, real `*.tfvars`, or `secret_version` in public repo | Plaintext secret leakage and production probing | Remote GCS state, `terraform.tfvars.example`, out-of-band secret values, `*_iam_member` only |

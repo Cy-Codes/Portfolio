@@ -1,0 +1,31 @@
+# ==============================================================================
+# Portfolio GCP Terraform Variables Contract (Example)
+# Copy to git-ignored `prod.tfvars` or inject via `TF_VAR_*` in CI.
+# NEVER commit real project IDs, personal emails, or secrets.
+# ==============================================================================
+
+project_id  = "your-gcp-project-id"
+region      = "us-central1"
+environment = "prod"
+name_prefix = "portfolio"
+
+# Cloud SQL for PostgreSQL 16 (private IP only)
+db_tier                = "db-f1-micro"
+db_disk_size_gb        = 10
+db_name                = "portfolio"
+db_deletion_protection = true
+
+# Immutable SHA-tagged Artifact Registry images (never :latest)
+admin_image    = "us-central1-docker.pkg.dev/your-gcp-project-id/portfolio-prod/server-admin:REPLACE_WITH_GIT_SHA"
+migrator_image = "us-central1-docker.pkg.dev/your-gcp-project-id/portfolio-prod/db-migrator:REPLACE_WITH_GIT_SHA"
+
+# Admin auth & access control
+admin_allowed_subjects = "owner@example.com"
+admin_cors_origins     = "https://admin.example.com"
+oauth_google_client_id = ""
+
+# Secure-by-default: require GCP IAM authentication to reach server-admin
+admin_public_access = false
+admin_invoker_members = [
+  "user:owner@example.com",
+]
