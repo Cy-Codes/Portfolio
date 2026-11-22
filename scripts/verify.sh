@@ -13,7 +13,7 @@ readonly ROOT_DIR="$(repo_root)"
 readonly HOOKS_JSON_REL=".agents/hooks.json"
 readonly HOOKS_DIR_REL=".agents/hooks"
 readonly ARCHITECTURE_TEST_FILTER="*ArchitectureFitnessTest*"
-readonly INTEGRATION_TEST_FILTER="*PostgresAndMinioIntegrationTest*"
+readonly INTEGRATION_TEST_FILTER="*PostgresAndGcsIntegrationTest*"
 readonly -a SUPPORTED_MODULES=(
     "core"
     "presentation"

@@ -85,7 +85,7 @@ object AdminAuthStoreFactory {
                             currentMode = mode
                             when {
                                 trimmedUrl.isEmpty() -> copy(errorMessage = "Admin API base URL must not be blank.")
-                                trimmedToken.isEmpty() -> copy(errorMessage = "Paste a bearer JWT or Cloudflare Access assertion token.")
+                                trimmedToken.isEmpty() -> copy(errorMessage = "Paste a bearer JWT or OIDC ID token.")
                                 else -> copy(
                                     baseUrl = trimmedUrl,
                                     isAuthenticating = true,

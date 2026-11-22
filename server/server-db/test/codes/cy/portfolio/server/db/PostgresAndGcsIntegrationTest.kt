@@ -1,10 +1,5 @@
 package codes.cy.portfolio.server.db
 
-import aws.sdk.kotlin.runtime.auth.credentials.StaticCredentialsProvider
-import aws.sdk.kotlin.services.s3.S3Client
-import aws.sdk.kotlin.services.s3.model.CreateBucketRequest
-import aws.smithy.kotlin.runtime.auth.awscredentials.Credentials
-import aws.smithy.kotlin.runtime.net.url.Url
 import codes.cy.portfolio.core.error.ApiError
 import codes.cy.portfolio.core.model.AnalyticsEventType
 import codes.cy.portfolio.core.model.ClientPlatform
@@ -26,9 +21,12 @@ import codes.cy.portfolio.server.db.repositories.ExposedDocumentRepository
 import codes.cy.portfolio.server.db.repositories.ExposedPortfolioRepository
 import codes.cy.portfolio.server.db.repositories.ExposedProjectRepository
 import codes.cy.portfolio.server.db.repositories.ExposedWriteupRepository
-import codes.cy.portfolio.server.db.storage.BlobStorageConfig
+import codes.cy.portfolio.server.db.storage.GcsBlobStorage
+import codes.cy.portfolio.server.db.storage.GcsBlobStorageConfig
 import codes.cy.portfolio.server.db.storage.MimeMagicBytes
-import codes.cy.portfolio.server.db.storage.S3BlobStorage
+import com.google.cloud.NoCredentials
+import com.google.cloud.storage.BucketInfo
+import com.google.cloud.storage.StorageOptions
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -54,12 +52,12 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
 
-class MinioTestContainer : GenericContainer<MinioTestContainer>(
-    DockerImageName.parse("pgsty/minio:RELEASE.2026-08-04T00-00-00Z"),
+class FakeGcsTestContainer : GenericContainer<FakeGcsTestContainer>(
+    DockerImageName.parse("fsouza/fake-gcs-server:1.52.2"),
 )
 
 @Testcontainers
-class PostgresAndMinioIntegrationTest {
+class PostgresAndGcsIntegrationTest {
 
     @Test
     fun `public role reads published content, inserts analytics without RETURNING, and blocks privileged mutations`() = runTest {
@@ -185,19 +183,16 @@ class PostgresAndMinioIntegrationTest {
     }
 
     @Test
-    fun `minio blob storage supports presignPut, magic-byte verifyObject, presignGet, and deleteObject`() = runTest {
-        val minioEndpoint = "http://${minio.host}:${minio.getMappedPort(MINIO_PORT)}"
-        val storageConfig = BlobStorageConfig(
-            endpointUrl = minioEndpoint,
-            publicEndpointUrl = minioEndpoint,
-            region = "us-east-1",
+    fun `gcs blob storage supports presignPut, magic-byte verifyObject, presignGet, and deleteObject`() = runTest {
+        val gcsEndpoint = "http://${fakeGcs.host}:${fakeGcs.getMappedPort(FAKE_GCS_PORT)}"
+        val storageConfig = GcsBlobStorageConfig(
             bucket = TEST_BUCKET,
-            accessKeyId = MINIO_USER,
-            secretAccessKey = MINIO_PASSWORD,
-            forcePathStyle = true,
+            emulatorHost = gcsEndpoint,
+            publicEmulatorHost = gcsEndpoint,
+            projectId = GcsBlobStorageConfig.DEFAULT_LOCAL_PROJECT_ID,
         )
 
-        S3BlobStorage(storageConfig).use { storage ->
+        GcsBlobStorage(storageConfig).use { storage ->
             val key = "documents/${Uuid.random()}/tc-sample.pdf"
             val presigned = storage.presignPut(storageKey = key, contentType = MimeMagicBytes.MIME_PDF)
             val pdfBytes = "%PDF-1.4\n%Testcontainers PDF sample\n".toByteArray(StandardCharsets.US_ASCII)
@@ -211,7 +206,7 @@ class PostgresAndMinioIntegrationTest {
                 .forEach { (name, value) -> putRequestBuilder.header(name, value) }
 
             val putResponse = httpClient.send(putRequestBuilder.build(), HttpResponse.BodyHandlers.discarding())
-            assertTrue(putResponse.statusCode() in 200..299, "Expected 2xx from MinIO PUT, got ${putResponse.statusCode()}")
+            assertTrue(putResponse.statusCode() in 200..299, "Expected 2xx from fake-gcs PUT, got ${putResponse.statusCode()}")
 
             val head = storage.verifyObject(key)
             assertNotNull(head)
@@ -242,9 +237,7 @@ class PostgresAndMinioIntegrationTest {
         private const val PUBLIC_ROLE: String = "portfolio_public"
         private const val ROLE_PASSWORD: String = "tc_role_secret_pw"
         private const val PG_INSUFFICIENT_PRIVILEGE: String = "42501"
-        private const val MINIO_PORT: Int = 9000
-        private const val MINIO_USER: String = "minioadmin"
-        private const val MINIO_PASSWORD: String = "tc_minio_secret_pw"
+        private const val FAKE_GCS_PORT: Int = 4443
         private const val TEST_BUCKET: String = "portfolio-tc-assets"
 
         @Container
@@ -257,12 +250,10 @@ class PostgresAndMinioIntegrationTest {
 
         @Container
         @JvmField
-        val minio: MinioTestContainer = MinioTestContainer().apply {
-            withExposedPorts(MINIO_PORT)
-            withEnv("MINIO_ROOT_USER", MINIO_USER)
-            withEnv("MINIO_ROOT_PASSWORD", MINIO_PASSWORD)
-            withCommand("server", "/data")
-            waitingFor(Wait.forHttp("/minio/health/ready").forPort(MINIO_PORT))
+        val fakeGcs: FakeGcsTestContainer = FakeGcsTestContainer().apply {
+            withExposedPorts(FAKE_GCS_PORT)
+            withCommand("-scheme", "http", "-port", FAKE_GCS_PORT.toString())
+            waitingFor(Wait.forHttp("/storage/v1/b").forPort(FAKE_GCS_PORT))
         }
 
         @JvmStatic
@@ -300,7 +291,6 @@ class PostgresAndMinioIntegrationTest {
                 ),
             )
 
-            // Seed one published writeup + one document for public/integration queries
             val adminFactory = DatabaseFactory.connect(
                 DatabaseConfig(
                     jdbcUrl = postgres.jdbcUrl,
@@ -337,17 +327,16 @@ class PostgresAndMinioIntegrationTest {
                 )
             }
 
-            val minioEndpoint = "http://${minio.host}:${minio.getMappedPort(MINIO_PORT)}"
-            S3Client {
-                region = "us-east-1"
-                endpointUrl = Url.parse(minioEndpoint)
-                forcePathStyle = true
-                credentialsProvider = StaticCredentialsProvider(
-                    Credentials(MINIO_USER, MINIO_PASSWORD),
-                )
-            }.use { s3 ->
-                s3.createBucket(CreateBucketRequest { bucket = TEST_BUCKET })
-            }
+            val gcsEndpoint = "http://${fakeGcs.host}:${fakeGcs.getMappedPort(FAKE_GCS_PORT)}"
+            StorageOptions.newBuilder()
+                .setHost(gcsEndpoint)
+                .setProjectId(GcsBlobStorageConfig.DEFAULT_LOCAL_PROJECT_ID)
+                .setCredentials(NoCredentials.getInstance())
+                .build()
+                .service
+                .use { storage ->
+                    storage.create(BucketInfo.of(TEST_BUCKET))
+                }
         }
     }
 }

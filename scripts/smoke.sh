@@ -12,13 +12,13 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 readonly ROOT_DIR="$(repo_root)"
 readonly SCHEMA_TESTS_REL="server/server-db/db/tests/01_schema_structure_tests.sql"
 
-# Side effect: Verifies Postgres Flyway history, schema structure tests, and MinIO bucket.
+# Side effect: Verifies Postgres Flyway history, schema structure tests, and GCS emulator bucket.
 verify_deps_smoke() {
     local db_name="${POSTGRES_DB:-${DEFAULT_POSTGRES_DB}}"
     local superuser="${POSTGRES_SUPERUSER:-${DEFAULT_POSTGRES_SUPERUSER}}"
-    local bucket_name="${BLOB_STORAGE_BUCKET:-${DEFAULT_MINIO_BUCKET}}"
-    local minio_user="${MINIO_ROOT_USER:-${DEFAULT_MINIO_ROOT_USER}}"
-    local minio_password="${MINIO_ROOT_PASSWORD:-${DEFAULT_MINIO_ROOT_PASSWORD}}"
+    local bucket_name="${GCS_BUCKET_NAME:-${DEFAULT_GCS_BUCKET}}"
+    local host="${HOST_BIND_ADDRESS:-${DEFAULT_HOST_BIND_ADDRESS}}"
+    local gcs_port="${GCS_EMULATOR_PORT:-${DEFAULT_GCS_EMULATOR_PORT}}"
 
     echo "==> Checking Flyway migration history in portfolio.flyway_schema_history..."
     local migration_count
@@ -31,9 +31,10 @@ verify_deps_smoke() {
     echo "==> Running PostgreSQL structural and least-privilege role assertions..."
     run_psql_stdin "${ROOT_DIR}" "${superuser}" "${db_name}" "${ROOT_DIR}/${SCHEMA_TESTS_REL}"
 
-    echo "==> Verifying MinIO bucket '${bucket_name}' exists..."
-    compose_cmd "${ROOT_DIR}" exec -T minio /bin/sh -c \
-        "mc alias set smoke http://127.0.0.1:9000 '${minio_user}' '${minio_password}' >/dev/null && mc ls 'smoke/${bucket_name}' >/dev/null"
+    echo "==> Verifying GCS emulator bucket '${bucket_name}' exists..."
+    require_command "curl" "Install curl to verify GCS emulator bucket readiness."
+    curl -fsS "http://${host}:${gcs_port}/storage/v1/b/${bucket_name}" >/dev/null \
+        || die "Expected GCS emulator bucket '${bucket_name}' to exist on ${host}:${gcs_port}."
 
     echo "==> Deps smoke verification passed (${migration_count} successful Flyway record(s))."
 }

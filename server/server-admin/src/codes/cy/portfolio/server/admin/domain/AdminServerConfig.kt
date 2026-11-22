@@ -7,8 +7,9 @@ data class AdminServerConfig(
     val devJwtSecret: String,
     val adminSessionSecret: String?,
     val allowedOwnerSubjects: Set<String>,
-    val cfAccessTeamDomain: String?,
-    val cfAccessAudience: String?,
+    val oidcJwksUrl: String?,
+    val oidcIssuer: String?,
+    val oidcAudience: String?,
     val oauthGithubClientId: String?,
     val oauthGoogleClientId: String?,
     val corsAllowedOrigins: List<String> = emptyList(),
@@ -25,6 +26,8 @@ data class AdminServerConfig(
         const val DEFAULT_ENV: String = "dev"
         const val DEFAULT_DEV_JWT_SECRET: String = "dev-only-portfolio-hs256-secret-minimum-32-bytes"
         const val DEFAULT_OWNER_SUBJECT: String = "dev-owner"
+        const val GOOGLE_OIDC_JWKS_URL: String = "https://www.googleapis.com/oauth2/v3/certs"
+        const val GOOGLE_OIDC_ISSUER: String = "https://accounts.google.com"
         private const val MIN_PORT: Int = 1
         private const val MAX_PORT: Int = 65535
         private val DEV_ENVIRONMENTS: Set<String> = setOf("dev", "development", "local", "test")
@@ -51,6 +54,13 @@ data class AdminServerConfig(
                 ?.map { it.trim() }
                 ?.filter { it.isNotEmpty() }
                 ?: emptyList()
+            val googleClientId = env("OAUTH_GOOGLE_CLIENT_ID")?.takeIf { it.isNotBlank() }
+            val oidcJwksUrl = env("OIDC_JWKS_URL")?.takeIf { it.isNotBlank() }
+                ?: googleClientId?.let { GOOGLE_OIDC_JWKS_URL }
+            val oidcIssuer = env("OIDC_ISSUER")?.takeIf { it.isNotBlank() }
+                ?: googleClientId?.let { GOOGLE_OIDC_ISSUER }
+            val oidcAudience = env("OIDC_AUDIENCE")?.takeIf { it.isNotBlank() }
+                ?: googleClientId
 
             return AdminServerConfig(
                 host = host,
@@ -59,10 +69,11 @@ data class AdminServerConfig(
                 devJwtSecret = devSecret,
                 adminSessionSecret = sessionSecret,
                 allowedOwnerSubjects = allowedSubjects,
-                cfAccessTeamDomain = env("CF_ACCESS_TEAM_DOMAIN")?.takeIf { it.isNotBlank() },
-                cfAccessAudience = env("CF_ACCESS_AUD")?.takeIf { it.isNotBlank() },
+                oidcJwksUrl = oidcJwksUrl,
+                oidcIssuer = oidcIssuer,
+                oidcAudience = oidcAudience,
                 oauthGithubClientId = env("OAUTH_GITHUB_CLIENT_ID")?.takeIf { it.isNotBlank() },
-                oauthGoogleClientId = env("OAUTH_GOOGLE_CLIENT_ID")?.takeIf { it.isNotBlank() },
+                oauthGoogleClientId = googleClientId,
                 corsAllowedOrigins = origins,
             )
         }

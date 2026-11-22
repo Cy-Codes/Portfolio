@@ -8,7 +8,7 @@ exposed = "1.6.1"
 hikaricp = "7.1.0"
 postgresql = "42.7.14"
 flyway = "13.13.0"
-aws-sdk-kotlin-s3 = "1.9.43"
+google-cloud-storage = "2.45.0"
 konsist = "0.18.1"
 testcontainers = "2.0.5"
 ktor = "3.6.1"
@@ -37,7 +37,7 @@ hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "hikaricp" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
-aws-sdk-kotlin-s3 = { module = "aws.sdk.kotlin:s3", version.ref = "aws-sdk-kotlin-s3" }
+google-cloud-storage = { module = "com.google.cloud:google-cloud-storage", version.ref = "google-cloud-storage" }
 konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
 testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }

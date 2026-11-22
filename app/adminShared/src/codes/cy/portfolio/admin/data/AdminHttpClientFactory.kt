@@ -15,10 +15,9 @@ import io.ktor.serialization.kotlinx.json.json
 
 /**
  * Creates separate HTTP clients for authenticated admin JSON calls and unauthenticated
- * direct-to-R2/MinIO presigned binary PUT uploads (preventing auth header leakage).
+ * direct-to-GCS/MinIO presigned binary PUT uploads (preventing auth header leakage).
  */
 object AdminHttpClientFactory {
-    const val HEADER_CF_ACCESS_JWT: String = "Cf-Access-Jwt-Assertion"
     private const val BEARER_PREFIX: String = "Bearer "
 
     fun createApiClient(
@@ -43,10 +42,8 @@ object AdminHttpClientFactory {
                     when (credentials.mode) {
                         AdminAuthMode.DEV_BEARER_TOKEN,
                         AdminAuthMode.OAUTH_SESSION_TOKEN,
+                        AdminAuthMode.OIDC_ID_TOKEN,
                         -> header(HttpHeaders.Authorization, "$BEARER_PREFIX$token")
-
-                        AdminAuthMode.CLOUDFLARE_ACCESS_ASSERTION ->
-                            header(HEADER_CF_ACCESS_JWT, token)
                     }
                 }
             }

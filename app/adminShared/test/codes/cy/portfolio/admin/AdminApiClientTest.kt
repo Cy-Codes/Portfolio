@@ -39,8 +39,8 @@ import kotlinx.coroutines.test.runTest
 class AdminApiClientTest {
 
     @Test
-    fun `api client routes Bearer and Cloudflare Access headers dynamically and parses overview`() = runTest {
-        val observedHeaders = mutableListOf<Pair<String?, String?>>()
+    fun `api client routes Bearer and OIDC ID token headers dynamically and parses overview`() = runTest {
+        val observedAuthHeaders = mutableListOf<String?>()
         val observedPaths = mutableListOf<String>()
         val holder = AdminSessionConfigHolder(
             initialBaseUrl = "http://127.0.0.1:8081",
@@ -49,10 +49,7 @@ class AdminApiClientTest {
 
         val apiEngine = MockEngine { request ->
             observedPaths.add("${request.method.value} ${request.url.encodedPath}?${request.url.encodedQuery}")
-            observedHeaders.add(
-                request.headers[HttpHeaders.Authorization] to
-                    request.headers[AdminHttpClientFactory.HEADER_CF_ACCESS_JWT],
-            )
+            observedAuthHeaders.add(request.headers[HttpHeaders.Authorization])
             when (request.url.encodedPath) {
                 "/api/v1/admin/auth/session" -> respond(
                     content = PortfolioJson.encodeToString(
@@ -91,18 +88,18 @@ class AdminApiClientTest {
 
         val sessionRes = assertIs<AdminApiResult.Success<AdminSessionDto>>(client.getSession())
         assertEquals("dev-owner", sessionRes.value.subject)
-        assertEquals("Bearer dev-jwt-123" to null, observedHeaders[0])
+        assertEquals("Bearer dev-jwt-123", observedAuthHeaders[0])
 
         holder.update(
             baseUrl = "https://admin.example.test",
-            credentials = AdminAuthCredentials(AdminAuthMode.CLOUDFLARE_ACCESS_ASSERTION, "cf-assertion-xyz"),
+            credentials = AdminAuthCredentials(AdminAuthMode.OIDC_ID_TOKEN, "oidc-id-token-xyz"),
         )
         val statsRes = assertIs<AdminApiResult.Success<StatsOverviewDto>>(
             client.getStatsOverview(StatsTimeRange.SEVEN_DAYS),
         )
         assertEquals(StatsTimeRange.SEVEN_DAYS, statsRes.value.range)
         assertEquals(120L, statsRes.value.totalEvents)
-        assertEquals(null to "cf-assertion-xyz", observedHeaders[1])
+        assertEquals("Bearer oidc-id-token-xyz", observedAuthHeaders[1])
         assertTrue(observedPaths[1].contains("range=7d"))
     }
 
@@ -118,7 +115,6 @@ class AdminApiClientTest {
 
         var storageMethod: HttpMethod? = null
         var storageAuthHeader: String? = "UNSET"
-        var storageCfHeader: String? = "UNSET"
         var storageHostHeader: String? = null
         var storageCustomHeader: String? = null
         var storageBodyBytes: ByteArray = ByteArray(0)
@@ -171,7 +167,6 @@ class AdminApiClientTest {
         val uploadEngine = MockEngine { request ->
             storageMethod = request.method
             storageAuthHeader = request.headers[HttpHeaders.Authorization]
-            storageCfHeader = request.headers[AdminHttpClientFactory.HEADER_CF_ACCESS_JWT]
             storageHostHeader = request.headers[HttpHeaders.Host]
             storageCustomHeader = request.headers["x-amz-meta-sha256"]
             storageBodyBytes = request.body.toByteArray()
@@ -203,7 +198,6 @@ class AdminApiClientTest {
         assertIs<AdminApiResult.Success<Unit>>(putRes)
         assertEquals(HttpMethod.Put, storageMethod)
         assertNull(storageAuthHeader)
-        assertNull(storageCfHeader)
         assertNull(storageHostHeader)
         assertEquals(digest, storageCustomHeader)
         assertTrue(pdfBytes.contentEquals(storageBodyBytes))

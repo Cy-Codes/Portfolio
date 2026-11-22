@@ -90,7 +90,7 @@ fun AdminSignInScreen(
                             style = MaterialTheme.typography.headlineSmall,
                         )
                         Text(
-                            text = "Protected Admin CMS & R2 Control Plane",
+                            text = "Protected Admin CMS & Storage Control Plane",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -150,7 +150,7 @@ fun AdminSignInScreen(
                     val fieldLabel = when (state.mode) {
                         AdminAuthMode.DEV_BEARER_TOKEN -> "Bearer JWT (from ./scripts/dev-token.sh owner)"
                         AdminAuthMode.OAUTH_SESSION_TOKEN -> "OAuth Owner Session JWT"
-                        AdminAuthMode.CLOUDFLARE_ACCESS_ASSERTION -> "Cf-Access-Jwt-Assertion Header Token"
+                        AdminAuthMode.OIDC_ID_TOKEN -> "Google / OIDC Bearer ID Token"
                     }
                     Text(fieldLabel)
                 },

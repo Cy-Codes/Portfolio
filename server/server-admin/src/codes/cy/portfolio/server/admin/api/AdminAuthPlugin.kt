@@ -12,8 +12,6 @@ import io.ktor.server.routing.RouteSelectorEvaluation
 import io.ktor.server.routing.RoutingResolveContext
 import io.ktor.util.AttributeKey
 
-private const val HEADER_CF_ACCESS_JWT: String = "Cf-Access-Jwt-Assertion"
-
 val AdminPrincipalKey: AttributeKey<AdminPrincipal> = AttributeKey("PortfolioAdminPrincipal")
 
 private object ProtectedAdminRouteSelector : RouteSelector() {
@@ -23,13 +21,13 @@ private object ProtectedAdminRouteSelector : RouteSelector() {
 
 /**
  * Unconditionally authenticates every admin route inside its child routing scope via
- * Cloudflare Access JWT or owner-allowlisted bearer JWT, leaving sibling `/health` probes open.
+ * standard Bearer JWT (OIDC ID token, OAuth session token, or dev-profile JWT),
+ * leaving sibling `/health` probes open.
  */
 fun createAdminAuthPlugin(authenticator: AdminTokenAuthenticator): RouteScopedPlugin<Unit> =
     createRouteScopedPlugin(name = "PortfolioAdminAuth") {
         onCall { call ->
             val principal = authenticator.authenticate(
-                cfAccessAssertion = call.request.headers[HEADER_CF_ACCESS_JWT],
                 authorizationHeader = call.request.headers[HttpHeaders.Authorization],
             )
             call.attributes.put(AdminPrincipalKey, principal)

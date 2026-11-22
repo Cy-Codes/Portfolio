@@ -16,8 +16,8 @@ import codes.cy.portfolio.server.db.repositories.ExposedPortfolioRepository
 import codes.cy.portfolio.server.db.repositories.ExposedProjectRepository
 import codes.cy.portfolio.server.db.repositories.ExposedWriteupRepository
 import codes.cy.portfolio.server.db.storage.BlobStorage
-import codes.cy.portfolio.server.db.storage.BlobStorageConfig
-import codes.cy.portfolio.server.db.storage.S3BlobStorage
+import codes.cy.portfolio.server.db.storage.GcsBlobStorage
+import codes.cy.portfolio.server.db.storage.GcsBlobStorageConfig
 import java.time.Clock
 
 /**
@@ -41,7 +41,7 @@ class AdminServerDependencies(
             clock: Clock = Clock.systemUTC(),
         ): AdminServerDependencies {
             val dbFactory = DatabaseFactory.connect(DatabaseConfig.fromEnv(DatabaseRole.ADMIN))
-            val blobStorage: BlobStorage = S3BlobStorage(BlobStorageConfig.fromEnv(), clock)
+            val blobStorage: BlobStorage = GcsBlobStorage(GcsBlobStorageConfig.fromEnv(), clock)
 
             val portfolioRepo = ExposedPortfolioRepository(dbFactory, clock)
             val projectRepo = ExposedProjectRepository(dbFactory, clock)

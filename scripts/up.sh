@@ -33,12 +33,12 @@ main() {
     load_env "${ROOT_DIR}"
 
     echo "==> Starting Portfolio Compose stack (profile=${profile})..."
-    compose_cmd "${ROOT_DIR}" --profile "${profile}" up -d --wait postgres minio
-    compose_cmd "${ROOT_DIR}" --profile "${profile}" up -d --no-deps db-migrator minio-init
+    compose_cmd "${ROOT_DIR}" --profile "${profile}" up -d --wait postgres fake-gcs
+    compose_cmd "${ROOT_DIR}" --profile "${profile}" up -d --no-deps db-migrator gcs-init
 
-    echo "==> Verifying one-shot Flyway migration and MinIO bucket initialization..."
+    echo "==> Verifying one-shot Flyway migration and GCS emulator bucket initialization..."
     wait_for_service_exit_zero "${ROOT_DIR}" "${profile}" "db-migrator"
-    wait_for_service_exit_zero "${ROOT_DIR}" "${profile}" "minio-init"
+    wait_for_service_exit_zero "${ROOT_DIR}" "${profile}" "gcs-init"
 
     if [ "${seed_enabled}" = "true" ]; then
         local migrator_user="${PORTFOLIO_MIGRATOR_USER:-portfolio_migrator}"

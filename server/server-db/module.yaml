@@ -10,7 +10,7 @@ dependencies:
   - $libs.postgresql
   - $libs.flyway.core
   - $libs.flyway.database.postgresql
-  - $libs.aws.sdk.kotlin.s3
+  - $libs.google.cloud.storage
   - $libs.kotlinx.coroutines.core
   - $libs.kotlinx.datetime
   - $libs.logback.classic

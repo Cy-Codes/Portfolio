@@ -54,7 +54,6 @@ fun Application.adminModule(modules: AdminAppModules) {
         allowMethod(HttpMethod.Options)
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
-        allowHeader("Cf-Access-Jwt-Assertion")
         modules.config.corsAllowedOrigins.forEach { origin ->
             allowHost(origin)
         }

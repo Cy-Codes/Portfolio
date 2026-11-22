@@ -8,9 +8,9 @@ import codes.cy.portfolio.server.db.repositories.ExposedDocumentRepository
 import codes.cy.portfolio.server.db.repositories.ExposedPortfolioRepository
 import codes.cy.portfolio.server.db.repositories.ExposedProjectRepository
 import codes.cy.portfolio.server.db.repositories.ExposedWriteupRepository
-import codes.cy.portfolio.server.db.storage.BlobStorageConfig
 import codes.cy.portfolio.server.db.storage.BlobStorageReader
-import codes.cy.portfolio.server.db.storage.S3BlobStorage
+import codes.cy.portfolio.server.db.storage.GcsBlobStorage
+import codes.cy.portfolio.server.db.storage.GcsBlobStorageConfig
 import codes.cy.portfolio.server.publicapi.application.PublicAnalyticsCommandService
 import codes.cy.portfolio.server.publicapi.application.PublicAppModules
 import codes.cy.portfolio.server.publicapi.application.PublicPortfolioQueryService
@@ -39,7 +39,7 @@ class PublicServerDependencies(
             clock: Clock = Clock.systemUTC(),
         ): PublicServerDependencies {
             val dbFactory = DatabaseFactory.connect(DatabaseConfig.fromEnv(DatabaseRole.PUBLIC))
-            val blobStorageReader: BlobStorageReader = S3BlobStorage(BlobStorageConfig.fromEnv(), clock)
+            val blobStorageReader: BlobStorageReader = GcsBlobStorage(GcsBlobStorageConfig.fromEnv(), clock)
 
             val portfolioRepo = ExposedPortfolioRepository(dbFactory, clock)
             val projectRepo = ExposedProjectRepository(dbFactory, clock)

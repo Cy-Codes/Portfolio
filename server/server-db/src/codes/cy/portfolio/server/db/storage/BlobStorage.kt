@@ -16,38 +16,6 @@ data class StoredObjectHead(
     val leadingBytes: ByteArray,
 )
 
-data class BlobStorageConfig(
-    val endpointUrl: String,
-    val publicEndpointUrl: String = endpointUrl,
-    val region: String,
-    val bucket: String,
-    val accessKeyId: String,
-    val secretAccessKey: String,
-    val forcePathStyle: Boolean,
-) {
-    companion object {
-        const val DEFAULT_ENDPOINT: String = "http://127.0.0.1:9000"
-        const val DEFAULT_REGION: String = "us-east-1"
-        const val DEFAULT_BUCKET: String = "portfolio-assets"
-        const val DEFAULT_ACCESS_KEY: String = "minioadmin"
-        const val DEFAULT_SECRET_KEY: String = "dev_minio_change_me"
-
-        fun fromEnv(env: (String) -> String? = System::getenv): BlobStorageConfig {
-            val endpoint = env("BLOB_STORAGE_ENDPOINT")?.takeIf { it.isNotBlank() } ?: DEFAULT_ENDPOINT
-            val publicEndpoint = env("BLOB_STORAGE_PUBLIC_ENDPOINT")?.takeIf { it.isNotBlank() } ?: endpoint
-            return BlobStorageConfig(
-                endpointUrl = endpoint,
-                publicEndpointUrl = publicEndpoint,
-                region = env("BLOB_STORAGE_REGION")?.takeIf { it.isNotBlank() } ?: DEFAULT_REGION,
-                bucket = env("BLOB_STORAGE_BUCKET")?.takeIf { it.isNotBlank() } ?: DEFAULT_BUCKET,
-                accessKeyId = env("BLOB_STORAGE_ACCESS_KEY")?.takeIf { it.isNotBlank() } ?: DEFAULT_ACCESS_KEY,
-                secretAccessKey = env("BLOB_STORAGE_SECRET_KEY")?.takeIf { it.isNotBlank() } ?: DEFAULT_SECRET_KEY,
-                forcePathStyle = env("BLOB_STORAGE_FORCE_PATH_STYLE")?.toBooleanStrictOrNull() ?: true,
-            )
-        }
-    }
-}
-
 /**
  * Least-privilege read-only object storage capability exposed to public read services.
  */

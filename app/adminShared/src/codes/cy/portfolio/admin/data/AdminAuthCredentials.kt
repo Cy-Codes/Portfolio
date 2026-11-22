@@ -5,7 +5,7 @@ import kotlin.concurrent.Volatile
 enum class AdminAuthMode(val label: String) {
     DEV_BEARER_TOKEN("Local Dev JWT"),
     OAUTH_SESSION_TOKEN("OAuth Session Token"),
-    CLOUDFLARE_ACCESS_ASSERTION("Cloudflare Access JWT"),
+    OIDC_ID_TOKEN("Google / OIDC ID Token"),
 }
 
 data class AdminAuthCredentials(

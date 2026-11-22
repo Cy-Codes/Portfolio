@@ -11,9 +11,8 @@ readonly DEFAULT_POSTGRES_SUPERUSER="postgres"
 readonly DEFAULT_PORTFOLIO_ADMIN_USER="portfolio_admin"
 readonly DEFAULT_PUBLIC_PORT="8080"
 readonly DEFAULT_ADMIN_PORT="8081"
-readonly DEFAULT_MINIO_BUCKET="portfolio-assets"
-readonly DEFAULT_MINIO_ROOT_USER="minioadmin"
-readonly DEFAULT_MINIO_ROOT_PASSWORD="dev_minio_change_me"
+readonly DEFAULT_GCS_BUCKET="portfolio-assets"
+readonly DEFAULT_GCS_EMULATOR_PORT="4443"
 readonly MAX_WAIT_ATTEMPTS=30
 readonly RETRY_SLEEP_SECONDS=2
 

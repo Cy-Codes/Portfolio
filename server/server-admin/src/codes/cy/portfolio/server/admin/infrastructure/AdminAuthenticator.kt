@@ -17,34 +17,25 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 interface AdminTokenAuthenticator {
-    suspend fun authenticate(
-        cfAccessAssertion: String?,
-        authorizationHeader: String?,
-    ): AdminPrincipal
+    suspend fun authenticate(authorizationHeader: String?): AdminPrincipal
 }
 
 /**
- * Verifies Cloudflare Access RS256 assertions in production or HS256 bearer JWTs
- * (local `dev-token.sh` strictly disabled outside dev/local/test environments, or
- * owner-allowlisted OAuth session tokens).
+ * Verifies standard `Authorization: Bearer <jwt>` credentials:
+ * - Local dev HS256 JWT (`scripts/dev-token.sh`, strictly disabled outside dev/local/test)
+ * - Owner-allowlisted OAuth session HS256 JWT (when `ADMIN_SESSION_SECRET` is configured)
+ * - Standard OIDC RS256 ID token via JWKS (defaults to Google OIDC when `OAUTH_GOOGLE_CLIENT_ID` is set)
  */
 class DefaultAdminAuthenticator(
     private val config: AdminServerConfig,
+    jwkProviderOverride: JwkProvider? = null,
 ) : AdminTokenAuthenticator {
 
-    private val cfJwkProvider: JwkProvider? = buildCloudflareJwkProvider(config.cfAccessTeamDomain)
+    private val oidcJwkProvider: JwkProvider? = jwkProviderOverride ?: buildOidcJwkProvider(config.oidcJwksUrl)
 
-    override suspend fun authenticate(
-        cfAccessAssertion: String?,
-        authorizationHeader: String?,
-    ): AdminPrincipal {
-        val cfToken = cfAccessAssertion?.trim()?.takeIf { it.isNotEmpty() }
-        if (cfToken != null && !config.cfAccessTeamDomain.isNullOrBlank() && !config.cfAccessAudience.isNullOrBlank()) {
-            return verifyCloudflareAccessJwt(cfToken)
-        }
-
+    override suspend fun authenticate(authorizationHeader: String?): AdminPrincipal {
         val bearerToken = extractBearerToken(authorizationHeader)
-            ?: throw UnauthorizedException("Missing bearer token or Cloudflare Access assertion.")
+            ?: throw UnauthorizedException("Missing Authorization Bearer token.")
 
         if (config.isDevAuthAllowed) {
             verifyHs256Token(
@@ -65,8 +56,17 @@ class DefaultAdminAuthenticator(
             )?.let { return it }
         }
 
+        if (isOidcConfigured()) {
+            return verifyOidcJwt(bearerToken)
+        }
+
         throw UnauthorizedException("Invalid or expired authentication token.")
     }
+
+    private fun isOidcConfigured(): Boolean =
+        oidcJwkProvider != null &&
+            !config.oidcIssuer.isNullOrBlank() &&
+            !config.oidcAudience.isNullOrBlank()
 
     private fun verifyHs256Token(
         token: String,
@@ -94,36 +94,46 @@ class DefaultAdminAuthenticator(
         return AdminPrincipal(subject = subject, role = role, authSource = authSource)
     }
 
-    private suspend fun verifyCloudflareAccessJwt(token: String): AdminPrincipal = withContext(Dispatchers.IO) {
-        val provider = cfJwkProvider
-            ?: throw UnauthorizedException("Cloudflare Access JWK provider is not configured.")
-        val teamDomain = requireNotNull(config.cfAccessTeamDomain).trim().trimEnd('/')
-        val audience = requireNotNull(config.cfAccessAudience).trim()
+    private suspend fun verifyOidcJwt(token: String): AdminPrincipal = withContext(Dispatchers.IO) {
+        val provider = oidcJwkProvider
+            ?: throw UnauthorizedException("OIDC JWK provider is not configured.")
+        val issuer = requireNotNull(config.oidcIssuer).trim().trimEnd('/')
+        val audience = requireNotNull(config.oidcAudience).trim()
 
         val decoded = try {
             val unverified = JWT.decode(token)
-            val jwk = provider.get(unverified.keyId)
+            val keyId = unverified.keyId?.takeIf { it.isNotBlank() }
+                ?: throw UnauthorizedException("OIDC token is missing key ID (kid).")
+            val jwk = provider.get(keyId)
             val publicKey = jwk.publicKey as? RSAPublicKey
-                ?: throw UnauthorizedException("Cloudflare Access public key is not RSA.")
+                ?: throw UnauthorizedException("OIDC JWK public key is not RSA.")
             JWT.require(Algorithm.RSA256(publicKey, null))
-                .withIssuer("https://$teamDomain")
+                .withIssuer(issuer)
                 .withAudience(audience)
                 .build()
                 .verify(token)
         } catch (ex: UnauthorizedException) {
             throw ex
         } catch (_: Exception) {
-            throw UnauthorizedException("Invalid or expired Cloudflare Access assertion.")
+            throw UnauthorizedException("Invalid or expired OIDC token.")
         }
 
-        val identity = decoded.getClaim(CLAIM_EMAIL).asString()?.trim()?.takeIf { it.isNotEmpty() }
+        val email = decoded.getClaim(CLAIM_EMAIL).asString()?.trim()?.takeIf { it.isNotEmpty() }
+        if (email != null) {
+            val emailVerifiedClaim = decoded.getClaim(CLAIM_EMAIL_VERIFIED)
+            if (!emailVerifiedClaim.isNull && !emailVerifiedClaim.isMissing && emailVerifiedClaim.asBoolean() == false) {
+                throw ForbiddenException("OIDC account email '$email' is not verified.")
+            }
+        }
+
+        val identity = email
             ?: decoded.subject?.trim()?.takeIf { it.isNotEmpty() }
-            ?: throw UnauthorizedException("Cloudflare Access token lacks identity claim.")
+            ?: throw UnauthorizedException("OIDC token lacks identity claim.")
 
         if (identity !in config.allowedOwnerSubjects) {
-            throw ForbiddenException("Cloudflare Access identity '$identity' is not on owner allowlist.")
+            throw ForbiddenException("OIDC identity '$identity' is not on owner allowlist.")
         }
-        AdminPrincipal(subject = identity, role = ROLE_OWNER, authSource = AUTH_SOURCE_CLOUDFLARE_ACCESS)
+        AdminPrincipal(subject = identity, role = ROLE_OWNER, authSource = AUTH_SOURCE_OIDC)
     }
 
     private fun extractBearerToken(headerValue: String?): String? {
@@ -134,10 +144,9 @@ class DefaultAdminAuthenticator(
         return trimmed.substring(BEARER_PREFIX.length).trim().takeIf { it.isNotEmpty() }
     }
 
-    private fun buildCloudflareJwkProvider(teamDomain: String?): JwkProvider? {
-        val cleanDomain = teamDomain?.trim()?.trimEnd('/')?.takeIf { it.isNotEmpty() } ?: return null
-        val certsUrl = URI("https://$cleanDomain/cdn-cgi/access/certs").toURL()
-        return JwkProviderBuilder(certsUrl)
+    private fun buildOidcJwkProvider(jwksUrl: String?): JwkProvider? {
+        val cleanUrl = jwksUrl?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        return JwkProviderBuilder(URI(cleanUrl).toURL())
             .cached(JWK_CACHE_SIZE, JWK_CACHE_MINUTES, TimeUnit.MINUTES)
             .build()
     }
@@ -150,10 +159,11 @@ class DefaultAdminAuthenticator(
         const val ROLE_VIEWER: String = "viewer"
         const val AUTH_SOURCE_DEV_JWT: String = "dev-jwt"
         const val AUTH_SOURCE_OAUTH_SESSION: String = "oauth-session"
-        const val AUTH_SOURCE_CLOUDFLARE_ACCESS: String = "cloudflare-access"
+        const val AUTH_SOURCE_OIDC: String = "oidc"
         private const val BEARER_PREFIX: String = "Bearer "
         private const val CLAIM_ROLE: String = "role"
         private const val CLAIM_EMAIL: String = "email"
+        private const val CLAIM_EMAIL_VERIFIED: String = "email_verified"
         private const val JWK_CACHE_SIZE: Long = 10L
         private const val JWK_CACHE_MINUTES: Long = 60L
     }

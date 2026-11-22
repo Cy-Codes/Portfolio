@@ -1,7 +1,7 @@
 # ============================================================================
 # Portfolio Local Infrastructure & Emulation Stack
 # Profiles:
-#   deps  - PostgreSQL 16 + One-Shot Flyway Migrator + MinIO (R2 local emulator)
+#   deps  - PostgreSQL 16 + One-Shot Flyway Migrator + fake-gcs-server (GCS emulator)
 #   local - Full local runtime dependencies + containerized public and admin Ktor servers
 #   test  - Ephemeral verification dependencies
 # ============================================================================
@@ -56,42 +56,36 @@ services:
       - ./server/server-db/resources/db/migrations:/flyway/sql:ro
     command: ["migrate"]
 
-  minio:
-    image: "pgsty/minio:${MINIO_IMAGE_TAG:-RELEASE.2026-08-04T00-00-00Z}"
+  fake-gcs:
+    image: "fsouza/fake-gcs-server:${FAKE_GCS_IMAGE_TAG:-1.52.2}"
     profiles: ["deps", "local", "test"]
     restart: unless-stopped
-    environment:
-      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-minioadmin}"
-      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-dev_minio_change_me}"
     ports:
-      - "${HOST_BIND_ADDRESS:-127.0.0.1}:${MINIO_API_PORT:-9000}:9000"
-      - "${HOST_BIND_ADDRESS:-127.0.0.1}:${MINIO_CONSOLE_PORT:-9001}:9001"
+      - "${HOST_BIND_ADDRESS:-127.0.0.1}:${GCS_EMULATOR_PORT:-4443}:4443"
     volumes:
-      - minio_data:/data
-    command: ["server", "/data", "--console-address", ":9001"]
+      - gcs_data:/data
+    command: ["-scheme", "http", "-port", "4443", "-filesystem-root", "/data", "-public-host", "127.0.0.1:${GCS_EMULATOR_PORT:-4443}"]
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4443/storage/v1/b >/dev/null || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 12
       start_period: 5s
 
-  minio-init:
-    image: "pgsty/mc:${MINIO_MC_IMAGE_TAG:-RELEASE.2026-11-12T00-00-00Z}"
+  gcs-init:
+    image: "curlimages/curl:${CURL_IMAGE_TAG:-8.12.1}"
     profiles: ["deps", "local", "test"]
     restart: "no"
     depends_on:
-      minio:
+      fake-gcs:
         condition: service_healthy
     environment:
-      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-minioadmin}"
-      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-dev_minio_change_me}"
-      BLOB_STORAGE_BUCKET: "${BLOB_STORAGE_BUCKET:-portfolio-assets}"
+      GCS_BUCKET_NAME: "${GCS_BUCKET_NAME:-portfolio-assets}"
     entrypoint: ["/bin/sh", "-c"]
     command:
       - >
-        mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}" &&
-        mc mb --ignore-existing "local/$${BLOB_STORAGE_BUCKET}"
+        status=$$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d "{\"name\":\"$${GCS_BUCKET_NAME}\"}" http://fake-gcs:4443/storage/v1/b) &&
+        ([ "$${status}" = "200" ] || [ "$${status}" = "409" ])
 
   server-public:
     build:
@@ -105,9 +99,9 @@ services:
         condition: service_healthy
       db-migrator:
         condition: service_completed_successfully
-      minio:
+      fake-gcs:
         condition: service_healthy
-      minio-init:
+      gcs-init:
         condition: service_completed_successfully
     environment:
       APP_ENV: "${APP_ENV:-dev}"
@@ -120,13 +114,10 @@ services:
       POSTGRES_DB: "${POSTGRES_DB:-portfolio}"
       PORTFOLIO_PUBLIC_USER: "${PORTFOLIO_PUBLIC_USER:-portfolio_public}"
       PORTFOLIO_PUBLIC_PASSWORD: "${PORTFOLIO_PUBLIC_PASSWORD:-dev_public_change_me}"
-      BLOB_STORAGE_ENDPOINT: "http://minio:9000"
-      BLOB_STORAGE_PUBLIC_ENDPOINT: "${BLOB_STORAGE_PUBLIC_ENDPOINT:-http://127.0.0.1:9000}"
-      BLOB_STORAGE_REGION: "${BLOB_STORAGE_REGION:-us-east-1}"
-      BLOB_STORAGE_BUCKET: "${BLOB_STORAGE_BUCKET:-portfolio-assets}"
-      BLOB_STORAGE_ACCESS_KEY: "${BLOB_STORAGE_ACCESS_KEY:-minioadmin}"
-      BLOB_STORAGE_SECRET_KEY: "${BLOB_STORAGE_SECRET_KEY:-dev_minio_change_me}"
-      BLOB_STORAGE_FORCE_PATH_STYLE: "${BLOB_STORAGE_FORCE_PATH_STYLE:-true}"
+      GCS_BUCKET_NAME: "${GCS_BUCKET_NAME:-portfolio-assets}"
+      GCS_PROJECT_ID: "${GCS_PROJECT_ID:-portfolio-local}"
+      STORAGE_EMULATOR_HOST: "http://fake-gcs:4443"
+      STORAGE_EMULATOR_PUBLIC_HOST: "${STORAGE_EMULATOR_PUBLIC_HOST:-http://127.0.0.1:4443}"
       WEB_STATIC_DIR: "${WEB_STATIC_DIR:-/app/web-static}"
     volumes:
       - ./build/tasks/_webApp_buildWasmJsAppWasmJsDebug:/app/web-static:ro
@@ -151,9 +142,9 @@ services:
         condition: service_healthy
       db-migrator:
         condition: service_completed_successfully
-      minio:
+      fake-gcs:
         condition: service_healthy
-      minio-init:
+      gcs-init:
         condition: service_completed_successfully
     environment:
       APP_ENV: "${APP_ENV:-dev}"
@@ -166,13 +157,10 @@ services:
       POSTGRES_DB: "${POSTGRES_DB:-portfolio}"
       PORTFOLIO_ADMIN_USER: "${PORTFOLIO_ADMIN_USER:-portfolio_admin}"
       PORTFOLIO_ADMIN_PASSWORD: "${PORTFOLIO_ADMIN_PASSWORD:-dev_admin_change_me}"
-      BLOB_STORAGE_ENDPOINT: "http://minio:9000"
-      BLOB_STORAGE_PUBLIC_ENDPOINT: "${BLOB_STORAGE_PUBLIC_ENDPOINT:-http://127.0.0.1:9000}"
-      BLOB_STORAGE_REGION: "${BLOB_STORAGE_REGION:-us-east-1}"
-      BLOB_STORAGE_BUCKET: "${BLOB_STORAGE_BUCKET:-portfolio-assets}"
-      BLOB_STORAGE_ACCESS_KEY: "${BLOB_STORAGE_ACCESS_KEY:-minioadmin}"
-      BLOB_STORAGE_SECRET_KEY: "${BLOB_STORAGE_SECRET_KEY:-dev_minio_change_me}"
-      BLOB_STORAGE_FORCE_PATH_STYLE: "${BLOB_STORAGE_FORCE_PATH_STYLE:-true}"
+      GCS_BUCKET_NAME: "${GCS_BUCKET_NAME:-portfolio-assets}"
+      GCS_PROJECT_ID: "${GCS_PROJECT_ID:-portfolio-local}"
+      STORAGE_EMULATOR_HOST: "http://fake-gcs:4443"
+      STORAGE_EMULATOR_PUBLIC_HOST: "${STORAGE_EMULATOR_PUBLIC_HOST:-http://127.0.0.1:4443}"
       WEB_STATIC_DIR: "${WEB_STATIC_DIR:-/app/web-static}"
     volumes:
       - ./build/tasks/_webApp_buildWasmJsAppWasmJsDebug:/app/web-static:ro
@@ -187,4 +175,4 @@ services:
 
 volumes:
   postgres_data:
-  minio_data:
+  gcs_data:

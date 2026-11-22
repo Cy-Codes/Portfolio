@@ -368,8 +368,9 @@ private class TestAdminHarness {
             devJwtSecret = AdminServerConfig.DEFAULT_DEV_JWT_SECRET,
             adminSessionSecret = null,
             allowedOwnerSubjects = setOf("dev-owner"),
-            cfAccessTeamDomain = null,
-            cfAccessAudience = null,
+            oidcJwksUrl = null,
+            oidcIssuer = null,
+            oidcAudience = null,
             oauthGithubClientId = null,
             oauthGoogleClientId = null,
         )
