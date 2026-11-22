@@ -15,7 +15,7 @@ import codes.cy.portfolio.ui.PortfolioApp
 import codes.cy.portfolio.ui.platform.PlatformActions
 import com.arkivanov.decompose.defaultComponentContext
 
-private const val DEBUG_ANDROID_API_BASE_URL: String = "http://10.0.2.2:8080"
+private const val DEBUG_ANDROID_API_BASE_URL: String = "http://127.0.0.2:8080"
 private const val PROD_ANDROID_API_BASE_URL: String = "https://cy.codes"
 
 class MainActivity : ComponentActivity() {

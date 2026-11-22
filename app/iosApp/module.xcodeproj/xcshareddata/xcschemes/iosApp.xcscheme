@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "E8B3E333A06D72571732020E"
-               BuildableName = "app"
+               BuildableName = "Portfolio.app"
                BlueprintName = "app"
                ReferencedContainer = "container:module.xcodeproj">
             </BuildableReference>
@@ -47,7 +47,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "E8B3E333A06D72571732020E"
-            BuildableName = "app"
+            BuildableName = "Portfolio.app"
             BlueprintName = "app"
             ReferencedContainer = "container:module.xcodeproj">
          </BuildableReference>

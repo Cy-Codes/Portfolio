@@ -28,7 +28,7 @@ Ensure the public (and optionally admin) server is serving locally:
      - `Large` (`1366x900`): persistent drawer
      - `Extra-Large` (`1720x1000`): persistent drawer + capped reading measure
 3. **`WebHistoryController` & Deep Links:**
-   - Navigate between Profile, Projects (`/projects/<slug>`), Writeups (`/writeups/<slug>`), and Resume/Docs (`/resume`), then test browser **Back** and **Forward** buttons to verify URL and screen synchronization.
+   - Navigate between Profile, Projects (`/projects/<slug>`), WriteUps (`/writeups/<slug>`), and Resume/Docs (`/resume`), then test browser **Back** and **Forward** buttons to verify URL and screen synchronization.
    - Directly open a deep link such as `http://127.0.0.1:8080/projects` or `/writeups/<slug>` and confirm it renders the matching destination.
 4. **HTML Reader View & SEO (`/read/{slug}`, `/sitemap.xml`, `/robots.txt`):**
    - Open `/read/<published-slug>` and inspect `<head>` for `<title>`, `<meta name="description">`, `rel="canonical"`, `og:*`, and `<script type="application/ld+json">` (`TechArticle`).

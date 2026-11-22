@@ -41,7 +41,6 @@ captures/
 .cxx/
 
 # --- Apple / Xcode / iOS ---
-**/module.xcodeproj/*
 !**/module.xcodeproj/project.pbxproj
 **/xcshareddata/WorkspaceSettings.xcsettings
 xcuserdata/

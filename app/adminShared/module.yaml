@@ -31,7 +31,7 @@ dependencies@wasmJs:
 settings:
   compose: enabled
   kotlin:
-    serialization: json
+    serialization: enabled
   ktor:
     enabled: true
 

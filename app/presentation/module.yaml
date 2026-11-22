@@ -29,7 +29,7 @@ dependencies@wasmJs:
 
 settings:
   kotlin:
-    serialization: json
+    serialization: enabled
   ktor:
     enabled: true
 

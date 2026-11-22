@@ -20,7 +20,7 @@ dependencies:
 settings:
   ktor: enabled
   kotlin:
-    serialization: json
+    serialization: enabled
   jvm:
     mainClass: codes.cy.portfolio.server.admin.ApplicationKt
 
